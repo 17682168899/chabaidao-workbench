@@ -24,6 +24,8 @@ async function init() {
   document.getElementById('userAvatar').textContent = CURRENT_USER.name.charAt(0);
   document.getElementById('userName').textContent = CURRENT_USER.name;
 
+  renderHero();
+  setupTabbar();
   render();
 }
 
@@ -203,6 +205,82 @@ function shiftW(delta) {
 function doLogout() {
   logout();
   window.location.href = 'login.html';
+}
+
+// 顶部问候横幅 + 今日班次
+function renderHero() {
+  const now = new Date();
+  const h = now.getHours();
+  let greet = '你好';
+  if (h < 6) greet = '凌晨好';
+  else if (h < 12) greet = '早上好';
+  else if (h < 14) greet = '中午好';
+  else if (h < 18) greet = '下午好';
+  else if (h < 22) greet = '晚上好';
+  else greet = '夜深了';
+
+  const wd = ['日', '一', '二', '三', '四', '五', '六'][now.getDay()];
+  const greetEl = document.getElementById('empGreet');
+  const dateEl = document.getElementById('empDate');
+  const shiftEl = document.getElementById('empShift');
+  const heroH = document.getElementById('heroTodayHours');
+  if (greetEl) greetEl.textContent = `${greet}，${CURRENT_USER.name}`;
+  if (dateEl) dateEl.textContent = `${now.getFullYear()}年${now.getMonth() + 1}月${now.getDate()}日 周${wd}`;
+
+  const today = formatDate(now);
+  const slots = getSchedule(DATA, CURRENT_EMP_ID, today);
+  const range = localAttendanceRange(slots);
+  if (range) {
+    if (shiftEl) {
+      shiftEl.innerHTML = `🕒 今日班次 ${range.start} - ${range.end}`;
+      shiftEl.style.display = 'inline-flex';
+    }
+    if (heroH) heroH.innerHTML = `${range.hours}<small>h</small>`;
+  } else {
+    if (shiftEl) {
+      shiftEl.innerHTML = '😴 今日休息';
+      shiftEl.style.display = 'inline-flex';
+    }
+    if (heroH) heroH.innerHTML = `0<small>h</small>`;
+  }
+}
+
+// 计算某员工某日的考勤起止（含休息段合并）
+function localAttendanceRange(slots) {
+  const settings = DATA.settings;
+  const labels = getSlotLabels(settings);
+  const interval = getBusinessSettings(DATA).slotInterval;
+  let first = -1, last = -1, workCount = 0;
+  slots.forEach((v, i) => {
+    if (v === 1 || v === 2) { if (first < 0) first = i; last = i; }
+    if (v === 1) workCount++;
+  });
+  if (first < 0) return null;
+  const startLbl = first === 0 ? getBusinessSettings(DATA).businessStart : labels[first - 1];
+  const endLbl = labels[last];
+  const hours = (workCount * (interval / 60)).toFixed(1);
+  return { start: startLbl, end: endLbl, hours };
+}
+
+// 底部导航：点击平滑滚动到对应区块
+function setupTabbar() {
+  const tabs = document.querySelectorAll('.emp-tabbar .emp-tab');
+  tabs.forEach((tab) => {
+    tab.addEventListener('click', () => {
+      const target = tab.getAttribute('data-target');
+      tabs.forEach((t) => t.classList.remove('active'));
+      tab.classList.add('active');
+      if (target === 'top') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        const el = document.getElementById(target);
+        if (el) {
+          const y = el.getBoundingClientRect().top + window.pageYOffset - 60;
+          window.scrollTo({ top: y, behavior: 'smooth' });
+        }
+      }
+    });
+  });
 }
 
 // 启动

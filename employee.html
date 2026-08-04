@@ -9,7 +9,7 @@
   <title>员工端 · 茶百道工作台</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
+<body class="emp-mobile">
   <!-- 顶部栏：当前登录员工 -->
   <header class="topbar">
     <h1>
@@ -27,19 +27,37 @@
 
   <div class="container">
 
+    <!-- 概览问候 -->
+    <div class="emp-hero">
+      <div class="emp-hero-top">
+        <div>
+          <div class="emp-greet" id="empGreet">你好</div>
+          <div class="emp-date" id="empDate">—</div>
+        </div>
+        <div class="emp-today">
+          <div class="emp-today-num" id="heroTodayHours">0<small>h</small></div>
+          <div class="emp-today-lbl">今日工时</div>
+        </div>
+      </div>
+      <div class="emp-shift" id="empShift">🕒 今日班次 —</div>
+    </div>
+
     <!-- 统计卡片 -->
     <div class="card">
       <h2 class="card-title"><span class="dot"></span>本周工时</h2>
       <div class="stat-grid">
         <div class="stat-item">
+          <span class="ico">📊</span>
           <div class="num" id="statWeekHours">0<small>h</small></div>
           <div class="label">本周工时</div>
         </div>
         <div class="stat-item">
+          <span class="ico">⏰</span>
           <div class="num" id="statTodayHours">0<small>h</small></div>
           <div class="label">今日工时</div>
         </div>
         <div class="stat-item">
+          <span class="ico">📅</span>
           <div class="num" id="statDays">0<small>天</small></div>
           <div class="label">上班天数</div>
         </div>
@@ -57,7 +75,7 @@
     </div>
 
     <!-- 个人考勤日历 -->
-    <div class="card">
+    <div class="card" id="sec-cal">
       <h2 class="card-title"><span class="dot"></span>个人考勤日历</h2>
       <div class="legend">
         <span><i class="sw work"></i>有班</span>
@@ -67,7 +85,7 @@
     </div>
 
     <!-- 当周班表（自己的） -->
-    <div class="card">
+    <div class="card" id="sec-sched">
       <h2 class="card-title"><span class="dot"></span>本周班表</h2>
       <div class="schedule-wrap">
         <div class="schedule-scroll">
@@ -77,7 +95,7 @@
     </div>
 
     <!-- 当日其他员工班表 -->
-    <div class="card">
+    <div class="card" id="sec-others">
       <h2 class="card-title"><span class="dot"></span>今日同事班次</h2>
       <div class="legend">
         <span><i class="sw work"></i>在岗</span>
@@ -88,6 +106,14 @@
     </div>
 
   </div>
+
+  <!-- 底部导航 -->
+  <nav class="emp-tabbar">
+    <button class="emp-tab active" data-target="top"><span class="ico">🏠</span><span>概览</span></button>
+    <button class="emp-tab" data-target="sec-cal"><span class="ico">📅</span><span>日历</span></button>
+    <button class="emp-tab" data-target="sec-sched"><span class="ico">🗓️</span><span>班表</span></button>
+    <button class="emp-tab" data-target="sec-others"><span class="ico">👥</span><span>同事</span></button>
+  </nav>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/supabase-config.js"></script>
