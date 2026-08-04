@@ -10,5 +10,5 @@
  * 两个值都保持占位符 'YOUR_SUPABASE_URL' / 'YOUR_SUPABASE_ANON_KEY' 时，
  * 网站自动回退到「本机浏览器存储」（非实时，但照常可用，不会报错）。
  */
-window.SUPABASE_URL = 'YOUR_SUPABASE_URL';
-window.SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+window.SUPABASE_URL = 'https://rakeglskukalqqmvskkx.supabase.co';
+window.SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJha2VnbHNrdWthbHFxbXZza2t4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3OTAxNDMsImV4cCI6MjEwMTM2NjE0M30.GI5wj-3RnxeourHFg-y9VESgB6sC6XhA1GmCgy1xSuA';

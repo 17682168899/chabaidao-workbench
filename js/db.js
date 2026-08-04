@@ -95,6 +95,8 @@
       appCache = localLoadApp();
       matCache = localLoadMaterials();
     }
+
+    mountBadge();
   }
 
   function ready() {
@@ -150,6 +152,42 @@
     listeners.forEach((cb) => {
       try { cb(); } catch (e) { /* 单个回调出错不影响其他 */ }
     });
+    if (mode === 'remote') flashBadge();
+  }
+
+  /* ---------- 同步状态徽标 ---------- */
+  function mountBadge() {
+    try {
+      let el = document.getElementById('cloudBadge');
+      if (!el) {
+        el = document.createElement('div');
+        el.id = 'cloudBadge';
+        el.style.cssText = 'position:fixed;right:10px;bottom:10px;z-index:99999;font-size:12px;line-height:1;padding:5px 11px;border-radius:999px;box-shadow:0 2px 8px rgba(0,0,0,.15);font-family:system-ui,sans-serif;pointer-events:none;white-space:nowrap;';
+        document.body.appendChild(el);
+      }
+      let text, bg, color;
+      if (!configured()) {
+        text = '💾 本机存储'; bg = '#f3f4f6'; color = '#6b7280';
+      } else if (mode === 'remote') {
+        text = '☁ 云端同步'; bg = '#E6F4EA'; color = '#1a7f37';
+      } else {
+        text = '⚠ 未连云端·本机'; bg = '#FEF3C7'; color = '#B45309';
+      }
+      el.textContent = text;
+      el.style.background = bg;
+      el.style.color = color;
+    } catch (e) { /* 忽略 */ }
+  }
+
+  function flashBadge() {
+    const el = document.getElementById('cloudBadge');
+    if (!el) return;
+    el.style.transition = 'none';
+    el.style.boxShadow = '0 0 0 4px rgba(26,127,55,.45)';
+    setTimeout(() => {
+      el.style.transition = 'box-shadow .6s ease';
+      el.style.boxShadow = '0 2px 8px rgba(0,0,0,.15)';
+    }, 80);
   }
 
   /* ---------- 读写接口（页面调用） ---------- */
