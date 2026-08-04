@@ -6,6 +6,8 @@ let DATA = null;
 let CURRENT_USER = null;   // 当前登录用户对象
 let CURRENT_EMP_ID = null; // = CURRENT_USER.id
 let CURRENT_WEEK = null;   // YYYY-MM-DD (Monday)
+let CURRENT_MONTH = null;  // { year, month } 当前查看的月份（month 0-based）
+let STAT_PERIOD = 'week';  // 工时统计周期：week | month
 
 const WEEKDAY_NAME = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
 
@@ -19,6 +21,8 @@ async function init() {
   DATA = loadData();
   CURRENT_EMP_ID = CURRENT_USER.id;
   CURRENT_WEEK = DATA.currentWeek || formatDate(getMondayOfThisWeek());
+  const now = new Date();
+  CURRENT_MONTH = { year: now.getFullYear(), month: now.getMonth() };
 
   // 顶部显示当前用户
   document.getElementById('userAvatar').textContent = CURRENT_USER.name.charAt(0);
@@ -30,10 +34,9 @@ async function init() {
 }
 
 function render() {
-  renderWeekNav();
-  renderStats();
-  renderCalendar();
-  renderMySchedule();
+  renderTodayShift();
+  renderMonthCalendar();
+  renderHoursStats();
   renderTodayOthers();
 
   ChabaidaoDB.onRemoteChange(() => {
@@ -43,117 +46,202 @@ function render() {
   });
 }
 
-function renderWeekNav() {
-  const monday = parseDate(CURRENT_WEEK);
-  const sunday = new Date(monday);
-  sunday.setDate(monday.getDate() + 6);
-  const m1 = `${monday.getMonth() + 1}月${monday.getDate()}日`;
-  const m2 = `${sunday.getMonth() + 1}月${sunday.getDate()}日`;
+// ============== 今日考勤班次 ==============
+function renderTodayShift() {
+  const box = document.getElementById('todayShiftBox');
+  if (!box) return;
   const today = formatDate(new Date());
-  const mondayStr = formatDate(monday);
-  document.getElementById('weekRange').textContent = `${monday.getFullYear()} · ${m1} - ${m2}`;
-  document.getElementById('weekMeta').textContent = mondayStr === today ? '本周' : '';
+  const slots = getSchedule(DATA, CURRENT_EMP_ID, today);
+  const info = dayWorkInfo(slots);
+  const settings = getBusinessSettings(DATA);
+  const hasRestOnly = !info.hasWork && slots.some((s) => s === 2);
+
+  if (!info.hasWork && !hasRestOnly) {
+    box.innerHTML = `<div class="ts-empty">😴 今日未排班</div>`;
+    return;
+  }
+
+  let html = '';
+  if (info.hasWork) {
+    html += `<div class="ts-main">
+      <div class="ts-range">${info.start} <span>—</span> ${info.end}</div>
+      <div class="ts-hours">${info.hours}<small>h</small></div>
+    </div>`;
+  } else {
+    html += `<div class="ts-main"><div class="ts-range">🌙 今日休息</div></div>`;
+  }
+
+  const restRanges = getRestRangesEmp(slots, settings);
+  if (restRanges.length) {
+    const restText = restRanges.map((r) => `${r.start} - ${r.end}`).join('、');
+    html += `<div class="ts-rest">休息时段：${restText}</div>`;
+  }
+  box.innerHTML = html;
 }
 
-function renderStats() {
-  const monday = parseDate(CURRENT_WEEK);
-  const today = formatDate(new Date());
-  const interval = getBusinessSettings(DATA).slotInterval;
-  const weekH = calcWeekHours(DATA, CURRENT_EMP_ID, monday);
-  const todaySlots = getSchedule(DATA, CURRENT_EMP_ID, today);
-  const todayH = calcWorkHours(todaySlots, interval);
-
-  const dates = getWeekDates(monday);
-  let workDays = 0;
-  dates.forEach((d) => {
-    const s = getSchedule(DATA, CURRENT_EMP_ID, formatDate(d));
-    if (calcWorkHours(s, interval) > 0) workDays++;
+// 计算某日上班信息：开始/结束/工时（含休息段合并）
+function dayWorkInfo(slots) {
+  const settings = DATA.settings;
+  const labels = getSlotLabels(settings);
+  const { startMin, interval } = getSlotSettings(settings);
+  let first = -1, last = -1, workCount = 0;
+  slots.forEach((v, i) => {
+    if (v === 1 || v === 2) { if (first < 0) first = i; last = i; }
+    if (v === 1) workCount++;
   });
-
-  document.getElementById('statWeekHours').innerHTML = `${weekH}<small>h</small>`;
-  document.getElementById('statTodayHours').innerHTML = `${todayH}<small>h</small>`;
-  document.getElementById('statDays').innerHTML = `${workDays}<small>天</small>`;
+  if (workCount === 0) return { hasWork: false, hours: 0 };
+  const startLbl = first === 0 ? getBusinessSettings(DATA).businessStart : labels[first - 1];
+  const endLbl = labels[last];
+  const hours = (workCount * (interval / 60)).toFixed(1);
+  return { hasWork: true, hours, start: startLbl, end: endLbl };
 }
 
-function renderCalendar() {
+function getRestRangesEmp(slots, settings) {
+  const { startMin, interval } = getSlotSettings(settings);
+  const ranges = [];
+  let startIdx = null;
+  for (let i = 0; i <= slots.length; i++) {
+    const isRest = i < slots.length && slots[i] === 2;
+    if (isRest && startIdx === null) startIdx = i;
+    if ((!isRest || i === slots.length) && startIdx !== null) {
+      const sMin = startMin + startIdx * interval;
+      const eMin = startMin + i * interval;
+      ranges.push({ start: formatMinutesToTime(sMin), end: formatMinutesToTime(eMin) });
+      startIdx = null;
+    }
+  }
+  return ranges;
+}
+
+// ============== 本月考勤日历 ==============
+function renderMonthCalendar() {
   const calEl = document.getElementById('calendar');
-  const today = new Date();
-  const todayStr = formatDate(today);
-  const monday = parseDate(CURRENT_WEEK);
+  if (!calEl) return;
+  const year = CURRENT_MONTH.year;
+  const month = CURRENT_MONTH.month; // 0-based
+  const labelEl = document.getElementById('monthLabel');
+  if (labelEl) labelEl.textContent = `${year}年${month + 1}月`;
+
+  const firstDay = new Date(year, month, 1);
+  const startWeekday = firstDay.getDay();      // 日=0
+  const lead = (startWeekday + 6) % 7;          // 周一为一周起始
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const todayStr = formatDate(new Date());
 
   let html = WEEKDAY_NAME.map((w) => `<div class="cal-head">${w}</div>`).join('');
+  for (let i = 0; i < lead; i++) html += '<div class="cal-day blank"></div>';
 
-  const dates = getWeekDates(monday);
-  const interval = getBusinessSettings(DATA).slotInterval;
-  dates.forEach((d) => {
-    const key = formatDate(d);
+  for (let d = 1; d <= daysInMonth; d++) {
+    const date = new Date(year, month, d);
+    const key = formatDate(date);
     const slots = getSchedule(DATA, CURRENT_EMP_ID, key);
-    const work = slots.filter((s) => s === 1).length;
-    const rest = slots.filter((s) => s === 2).length;
-    const hours = (work * (interval / 60)).toFixed(1);
+    const scheduled = slots.some((s) => s === 1 || s === 2);
     const isToday = key === todayStr;
     let cls = 'cal-day';
     if (isToday) cls += ' today';
-    else if (work > 0) cls += ' has-work';
-    else if (rest > 0) cls += ' is-rest';
+    if (scheduled) cls += ' has-work';
 
-    html += `
-      <div class="${cls}">
-        <div class="dnum">${d.getDate()}</div>
-        <div class="dtag">${work > 0 ? hours + 'h' : rest > 0 ? '休' : '—'}</div>
-      </div>
-    `;
-  });
-
+    html += `<div class="${cls}" ${scheduled ? `onclick="openDayModal('${key}')"` : ''}>
+      <div class="dnum">${d}</div>
+      ${scheduled ? '<div class="dot-blue"></div>' : ''}
+    </div>`;
+  }
   calEl.innerHTML = html;
 }
 
-function renderMySchedule() {
-  const tbl = document.getElementById('mySchedule');
-  const monday = parseDate(CURRENT_WEEK);
-  const dates = getWeekDates(monday);
-  const emp = findEmployee(DATA, CURRENT_EMP_ID);
-  const slotLabels = getSlotLabels(DATA.settings);
-  const slotCount = slotLabels.length;
+function shiftMonth(delta) {
+  let m = CURRENT_MONTH.month + delta;
+  let y = CURRENT_MONTH.year;
+  if (m < 0) { m = 11; y--; }
+  if (m > 11) { m = 0; y++; }
+  CURRENT_MONTH = { year: y, month: m };
+  renderMonthCalendar();
+}
 
-  let html = '<thead>';
-  html += '<tr>';
-  html += '<th class="sticky-col sticky-name" rowspan="2">姓名</th>';
-  html += '<th class="sticky-col sticky-position" rowspan="2">岗位</th>';
-  html += '<th class="sticky-col sticky-hours" rowspan="2">本周工时</th>';
+// ============== 工时统计（本周/本月） ==============
+function renderHoursStats() {
+  const grid = document.getElementById('hoursStatGrid');
+  if (!grid) return;
+  const interval = getBusinessSettings(DATA).slotInterval;
+  let dates = [];
+  if (STAT_PERIOD === 'week') {
+    const monday = parseDate(CURRENT_WEEK);
+    dates = getWeekDates(monday);
+  } else {
+    const y = CURRENT_MONTH.year;
+    const m = CURRENT_MONTH.month;
+    const last = new Date(y, m + 1, 0).getDate();
+    for (let d = 1; d <= last; d++) dates.push(new Date(y, m, d));
+  }
+
+  let total = 0, workDays = 0;
   dates.forEach((d) => {
-    const wd = d.getDay() === 0 ? 6 : d.getDay() - 1;
-    html += `<th class="date-col" colspan="${slotCount}">${d.getMonth() + 1}/${d.getDate()} ${WEEKDAY_NAME[wd]}</th>`;
+    const s = getSchedule(DATA, CURRENT_EMP_ID, formatDate(d));
+    const h = calcWorkHours(s, interval);
+    total += h;
+    if (h > 0) workDays++;
   });
-  html += '</tr>';
-  html += '<tr>';
-  dates.forEach(() => {
-    slotLabels.forEach((lbl) => {
-      html += `<th>${lbl.slice(0, 5)}</th>`;
-    });
-  });
-  html += '</tr>';
-  html += '</thead>';
+  const avg = workDays > 0 ? total / workDays : 0;
+  const tag = STAT_PERIOD === 'week' ? '本周' : '本月';
 
-  html += '<tbody>';
-  html += '<tr>';
-  html += `<td class="name-cell">${emp ? emp.name : '我'}</td>`;
-  html += `<td class="position-cell">${emp && emp.position ? emp.position : '-'}</td>`;
-  html += `<td class="hours-cell">${calcWeekHours(DATA, CURRENT_EMP_ID, monday).toFixed(1)}h</td>`;
-  dates.forEach((d) => {
-    const key = formatDate(d);
-    const slots = getSchedule(DATA, CURRENT_EMP_ID, key);
-    slots.forEach((v) => {
-      let cls = 'slot';
-      if (v === 1) cls += ' work';
-      else if (v === 2) cls += ' rest';
-      html += `<td class="${cls}"></td>`;
-    });
-  });
-  html += '</tr>';
-  html += '</tbody>';
+  grid.innerHTML = `
+    <div class="stat-item">
+      <span class="ico">⏰</span>
+      <div class="num">${total.toFixed(1)}<small>h</small></div>
+      <div class="label">${tag}工时</div>
+    </div>
+    <div class="stat-item">
+      <span class="ico">📅</span>
+      <div class="num">${workDays}<small>天</small></div>
+      <div class="label">上班天数</div>
+    </div>
+    <div class="stat-item">
+      <span class="ico">📈</span>
+      <div class="num">${avg.toFixed(1)}<small>h</small></div>
+      <div class="label">日均工时</div>
+    </div>
+  `;
+}
 
-  tbl.innerHTML = html;
+function switchStatPeriod(p) {
+  STAT_PERIOD = p;
+  document.querySelectorAll('#statSeg .seg-btn').forEach((b) => {
+    b.classList.toggle('active', b.getAttribute('data-period') === p);
+  });
+  renderHoursStats();
+}
+
+// ============== 日历日详情 ==============
+function openDayModal(dateStr) {
+  const slots = getSchedule(DATA, CURRENT_EMP_ID, dateStr);
+  const info = dayWorkInfo(slots);
+  const settings = getBusinessSettings(DATA);
+  const date = parseDate(dateStr);
+  const wd = ['日', '一', '二', '三', '四', '五', '六'][date.getDay()];
+  document.getElementById('dayModalTitle').textContent = `${dateStr} 周${wd} · 上班时间`;
+
+  let html = '';
+  if (info.hasWork) {
+    html += `<div class="detail-row"><span class="day">考勤时段</span><span class="time"><span class="work-time">${info.start} - ${info.end}</span></span></div>`;
+    html += `<div class="detail-row"><span class="day">当日工时</span><span class="time"><span class="work-time">${info.hours} h</span></span></div>`;
+  } else if (slots.some((s) => s === 2)) {
+    html += `<div class="detail-row"><span class="day">状态</span><span class="time"><span class="rest-time">休息</span></span></div>`;
+  } else {
+    html += `<div class="detail-row"><span class="day">状态</span><span class="time"><span class="empty-time">未排班</span></span></div>`;
+  }
+
+  const restRanges = getRestRangesEmp(slots, settings);
+  if (restRanges.length) {
+    const restText = restRanges.map((r) => `${r.start} - ${r.end}`).join('、');
+    html += `<div class="detail-row"><span class="day">休息时段</span><span class="time"><span class="rest-time">${restText}</span></span></div>`;
+  }
+
+  document.getElementById('dayModalBody').innerHTML = `<div class="detail-list">${html}</div>`;
+  document.getElementById('dayModal').classList.add('show');
+}
+
+function closeDayModal() {
+  document.getElementById('dayModal').classList.remove('show');
 }
 
 function renderTodayOthers() {
@@ -195,11 +283,6 @@ function renderTodayOthers() {
     `;
   });
   list.innerHTML = html;
-}
-
-function shiftW(delta) {
-  CURRENT_WEEK = shiftWeek(CURRENT_WEEK, delta);
-  render();
 }
 
 function doLogout() {

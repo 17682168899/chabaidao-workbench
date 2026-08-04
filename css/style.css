@@ -1647,6 +1647,96 @@ button {
 .calendar { gap: 6px; }
 .calendar .cal-day { border-radius: 12px; }
 
+/* ============================
+   员工端：今日考勤班次
+   ============================ */
+.today-shift { padding: 4px 2px 2px; }
+.ts-main {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+.ts-range { font-size: 22px; font-weight: 800; color: var(--text-1); }
+.ts-range span { color: var(--text-3); font-weight: 400; margin: 0 2px; }
+.ts-hours { font-size: 24px; font-weight: 800; color: var(--brand-primary); line-height: 1; }
+.ts-hours small { font-size: 13px; font-weight: 500; margin-left: 2px; }
+.ts-rest {
+  margin-top: 10px;
+  font-size: 13px;
+  color: var(--accent-rest);
+  background: rgba(245, 158, 11, 0.1);
+  border-radius: var(--radius-sm);
+  padding: 7px 10px;
+}
+.ts-empty { font-size: 15px; color: var(--text-3); padding: 6px 0; }
+
+/* 月份切换 */
+.month-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 10px 0 12px;
+}
+.month-nav button {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: #fff;
+  font-size: 18px;
+  color: var(--text-1);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.month-nav button:active { background: #EFF5FF; }
+.month-label { font-size: 15px; font-weight: 600; }
+
+/* 段控按钮（本周/本月） */
+.seg {
+  display: inline-flex;
+  background: #F2F4F7;
+  border-radius: 10px;
+  padding: 3px;
+  gap: 2px;
+  margin-bottom: 14px;
+}
+.seg-btn {
+  border: none;
+  background: transparent;
+  padding: 7px 20px;
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--text-2);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.seg-btn.active {
+  background: #fff;
+  color: var(--brand-primary);
+  font-weight: 600;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+
+/* 日历：蓝色标记（有班次） */
+.calendar .cal-day.blank {
+  background: transparent;
+  cursor: default;
+}
+.calendar .cal-day.has-work {
+  background: rgba(37, 99, 235, 0.12);
+  border: 1px solid rgba(37, 99, 235, 0.5);
+}
+.calendar .cal-day.has-work .dnum { color: #1E5FD0; }
+.calendar .cal-day .dot-blue {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--brand-primary);
+  margin-top: 4px;
+}
+.calendar .cal-day.today {
+  box-shadow: 0 0 0 2px var(--brand-primary) inset;
+}
+
 /* 底部导航栏 */
 .emp-tabbar {
   position: fixed;

@@ -42,56 +42,35 @@
       <div class="emp-shift" id="empShift">🕒 今日班次 —</div>
     </div>
 
-    <!-- 统计卡片 -->
-    <div class="card">
-      <h2 class="card-title"><span class="dot"></span>本周工时</h2>
-      <div class="stat-grid">
-        <div class="stat-item">
-          <span class="ico">📊</span>
-          <div class="num" id="statWeekHours">0<small>h</small></div>
-          <div class="label">本周工时</div>
-        </div>
-        <div class="stat-item">
-          <span class="ico">⏰</span>
-          <div class="num" id="statTodayHours">0<small>h</small></div>
-          <div class="label">今日工时</div>
-        </div>
-        <div class="stat-item">
-          <span class="ico">📅</span>
-          <div class="num" id="statDays">0<small>天</small></div>
-          <div class="label">上班天数</div>
-        </div>
-      </div>
+    <!-- 今日考勤班次 -->
+    <div class="card" id="sec-today">
+      <h2 class="card-title"><span class="dot"></span>今日考勤班次</h2>
+      <div class="today-shift" id="todayShiftBox"></div>
     </div>
 
-    <!-- 周切换 -->
-    <div class="week-nav">
-      <button onclick="shiftW(-1)">‹</button>
-      <div class="week-label">
-        <div class="range" id="weekRange">本周</div>
-        <div class="meta" id="weekMeta">共 7 天</div>
-      </div>
-      <button onclick="shiftW(1)">›</button>
-    </div>
-
-    <!-- 个人考勤日历 -->
+    <!-- 本月考勤日历 -->
     <div class="card" id="sec-cal">
-      <h2 class="card-title"><span class="dot"></span>个人考勤日历</h2>
+      <h2 class="card-title"><span class="dot"></span>本月考勤日历</h2>
       <div class="legend">
-        <span><i class="sw work"></i>有班</span>
-        <span><i class="sw empty"></i>休息</span>
+        <span><i class="sw work"></i>有班次</span>
+        <span><i class="sw empty"></i>无班次</span>
+      </div>
+      <div class="month-nav">
+        <button onclick="shiftMonth(-1)">‹</button>
+        <div class="month-label" id="monthLabel">—</div>
+        <button onclick="shiftMonth(1)">›</button>
       </div>
       <div class="calendar" id="calendar"></div>
     </div>
 
-    <!-- 当周班表（自己的） -->
-    <div class="card" id="sec-sched">
-      <h2 class="card-title"><span class="dot"></span>本周班表</h2>
-      <div class="schedule-wrap">
-        <div class="schedule-scroll">
-          <table class="schedule-table" id="mySchedule"></table>
-        </div>
+    <!-- 工时统计 -->
+    <div class="card" id="sec-stats">
+      <h2 class="card-title"><span class="dot"></span>工时统计</h2>
+      <div class="seg" id="statSeg">
+        <button class="seg-btn active" data-period="week" onclick="switchStatPeriod('week')">本周</button>
+        <button class="seg-btn" data-period="month" onclick="switchStatPeriod('month')">本月</button>
       </div>
+      <div class="stat-grid" id="hoursStatGrid"></div>
     </div>
 
     <!-- 当日其他员工班表 -->
@@ -111,9 +90,18 @@
   <nav class="emp-tabbar">
     <button class="emp-tab active" data-target="top"><span class="ico">🏠</span><span>概览</span></button>
     <button class="emp-tab" data-target="sec-cal"><span class="ico">📅</span><span>日历</span></button>
-    <button class="emp-tab" data-target="sec-sched"><span class="ico">🗓️</span><span>班表</span></button>
+    <button class="emp-tab" data-target="sec-stats"><span class="ico">📊</span><span>工时</span></button>
     <button class="emp-tab" data-target="sec-others"><span class="ico">👥</span><span>同事</span></button>
   </nav>
+
+  <!-- 日历日详情弹窗 -->
+  <div class="modal-backdrop" id="dayModal" onclick="if(event.target===this)closeDayModal()">
+    <div class="modal detail-modal">
+      <h3 id="dayModalTitle">上班时间</h3>
+      <div class="detail-body" id="dayModalBody"></div>
+      <div class="actions"><button class="btn" onclick="closeDayModal()">知道了</button></div>
+    </div>
+  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/supabase-config.js"></script>
