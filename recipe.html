@@ -28,15 +28,18 @@
   <div class="container">
     <div class="card">
       <h2 class="card-title"><span class="dot"></span>配方查询</h2>
-      <div class="search-box" style="margin-bottom:14px;">
-        <input type="text" id="recipeSearch" placeholder="输入物料或产品名称" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:10px;font-size:14px;">
+      <div class="search-box">
+        <span class="search-ico">🔍</span>
+        <input type="text" id="recipeSearch" placeholder="搜索配方名 / 分类 / 配料（如：奶茶、柠檬、珍珠）" oninput="onRecipeSearch()">
+        <span class="clear-ico" id="recipeClear" onclick="clearRecipeSearch()">✕</span>
       </div>
-      <div class="empty-state" id="recipeEmpty">
-        <div class="icon">📖</div>
-        <p>功能开发中，敬请期待</p>
-        <p style="font-size:12px;color:var(--text-3);margin-top:4px;">后续可支持按物料/产品查询配方</p>
+      <div class="recipe-count" id="recipeCount"></div>
+      <div class="recipe-list" id="recipeList"></div>
+      <div class="empty-state" id="recipeEmpty" style="display:none;">
+        <div class="icon">🔍</div>
+        <p>没有匹配的配方</p>
+        <p style="font-size:12px;color:var(--text-3);margin-top:4px;">试试更换关键词，或查看全部配方</p>
       </div>
-      <div class="recipe-list" id="recipeList" style="display:none;"></div>
     </div>
   </div>
 
@@ -51,14 +54,78 @@
   <script src="js/supabase-config.js"></script>
   <script src="js/db.js"></script>
   <script src="js/data.js"></script>
+  <script src="js/store.js"></script>
   <script>
+    let RECIPES = [];
+
     async function initPage() {
       await ChabaidaoDB.ready();
       const user = requireLogin('staff');
       if (!user) return;
       document.getElementById('userAvatar').textContent = user.name.charAt(0);
       document.getElementById('userName').textContent = user.name;
+      RECIPES = ChabaidaoKV.get('recipes', defaultRecipes());
+      renderRecipes('');
     }
+
+    function onRecipeSearch() {
+      const kw = document.getElementById('recipeSearch').value.trim();
+      document.getElementById('recipeClear').classList.toggle('show', kw.length > 0);
+      renderRecipes(kw);
+    }
+
+    function clearRecipeSearch() {
+      document.getElementById('recipeSearch').value = '';
+      document.getElementById('recipeClear').classList.remove('show');
+      renderRecipes('');
+    }
+
+    function renderRecipes(kw) {
+      const list = document.getElementById('recipeList');
+      const empty = document.getElementById('recipeEmpty');
+      const countEl = document.getElementById('recipeCount');
+      const k = kw.toLowerCase();
+
+      const matched = RECIPES.filter((r) => {
+        if (!k) return true;
+        if (r.name.toLowerCase().includes(k)) return true;
+        if (r.cat && r.cat.toLowerCase().includes(k)) return true;
+        return (r.ingredients || []).some((ing) => ing.name.toLowerCase().includes(k));
+      });
+
+      countEl.textContent = kw ? `匹配到 ${matched.length} 个配方` : `共 ${RECIPES.length} 个配方`;
+
+      if (matched.length === 0) {
+        list.innerHTML = '';
+        list.style.display = 'none';
+        empty.style.display = 'block';
+        return;
+      }
+      empty.style.display = 'none';
+      list.style.display = 'block';
+
+      list.innerHTML = matched.map((r) => {
+        const ings = (r.ingredients || []).map((ing) =>
+          `<div class="ing-item">
+             <span class="ing-name">${escapeHtml(ing.name)}</span>
+             <span class="ing-qty">${escapeHtml(ing.qty || '')}</span>
+           </div>`
+        ).join('');
+        const steps = r.steps
+          ? `<div class="recipe-steps"><span class="lbl">做法</span>${escapeHtml(r.steps)}</div>`
+          : '';
+        return `
+          <div class="recipe-card">
+            <div class="recipe-head">
+              <span class="recipe-name">${escapeHtml(r.name)}</span>
+              <span class="recipe-cat">${escapeHtml(r.cat || '其他')}</span>
+            </div>
+            <div class="recipe-ing">${ings}</div>
+            ${steps}
+          </div>`;
+      }).join('');
+    }
+
     function doLogout() {
       logout();
       window.location.href = 'login.html';

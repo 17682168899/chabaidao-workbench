@@ -28,12 +28,14 @@
   <div class="container">
     <div class="card">
       <h2 class="card-title"><span class="dot"></span>本周清洁任务</h2>
-      <div class="empty-state" id="cleanEmpty">
-        <div class="icon">🧹</div>
-        <p>功能开发中，敬请期待</p>
-        <p style="font-size:12px;color:var(--text-3);margin-top:4px;">后续可展示每周清洁任务清单与完成情况</p>
+      <div class="clean-progress">
+        <span class="cp-text">已完成 <b id="cpDone">0</b>/<span id="cpTotal">0</span></span>
+        <div class="progress-bar"><div class="progress-fill" id="cpFill"></div></div>
       </div>
-      <div class="clean-list" id="cleanList" style="display:none;"></div>
+      <div class="clean-list" id="cleanList"></div>
+      <div class="clean-reset">
+        <button onclick="resetCleanWeek()">重置本周</button>
+      </div>
     </div>
   </div>
 
@@ -48,14 +50,66 @@
   <script src="js/supabase-config.js"></script>
   <script src="js/db.js"></script>
   <script src="js/data.js"></script>
+  <script src="js/store.js"></script>
   <script>
+    let TASKS = [];
+    let WEEK_KEY = '';
+    let DONE = [];
+
     async function initPage() {
       await ChabaidaoDB.ready();
       const user = requireLogin('staff');
       if (!user) return;
       document.getElementById('userAvatar').textContent = user.name.charAt(0);
       document.getElementById('userName').textContent = user.name;
+
+      TASKS = defaultCleanTasks();
+      WEEK_KEY = 'clean_' + isoWeekKey(new Date());
+      DONE = ChabaidaoKV.get(WEEK_KEY, []);
+
+      document.getElementById('cpTotal').textContent = TASKS.length;
+      renderClean();
     }
+
+    function renderClean() {
+      const list = document.getElementById('cleanList');
+      list.innerHTML = TASKS.map((t) => {
+        const done = DONE.includes(t.id);
+        return `
+          <div class="clean-task ${done ? 'done' : ''}" onclick="toggleClean('${t.id}')">
+            <div class="check">${done ? '✓' : ''}</div>
+            <div class="info">
+              <div class="ct-head">
+                <span class="ct-area">${escapeHtml(t.area)}</span>
+                <span class="ct-name">${escapeHtml(t.name)}</span>
+              </div>
+              <div class="ct-note">${escapeHtml(t.note)}</div>
+            </div>
+          </div>`;
+      }).join('');
+
+      const doneCount = DONE.length;
+      document.getElementById('cpDone').textContent = doneCount;
+      const pct = TASKS.length ? Math.round((doneCount / TASKS.length) * 100) : 0;
+      document.getElementById('cpFill').style.width = pct + '%';
+    }
+
+    function toggleClean(id) {
+      const idx = DONE.indexOf(id);
+      if (idx >= 0) DONE.splice(idx, 1);
+      else DONE.push(id);
+      ChabaidaoKV.set(WEEK_KEY, DONE);
+      renderClean();
+    }
+
+    function resetCleanWeek() {
+      if (!confirm('确定重置本周清洁任务？已勾选状态将清空。')) return;
+      DONE = [];
+      ChabaidaoKV.set(WEEK_KEY, DONE);
+      renderClean();
+      showToast('已重置本周');
+    }
+
     function doLogout() {
       logout();
       window.location.href = 'login.html';

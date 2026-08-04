@@ -28,12 +28,14 @@
   <div class="container">
     <div class="card">
       <h2 class="card-title"><span class="dot"></span>备料清单</h2>
-      <div class="empty-state" id="prepEmpty">
-        <div class="icon">📦</div>
-        <p>功能开发中，敬请期待</p>
-        <p style="font-size:12px;color:var(--text-3);margin-top:4px;">后续可按日/班次展示需要准备的物料清单</p>
+      <div class="prep-summary">
+        <div class="prep-stat"><div class="num" id="prepNeed">0</div><div class="lbl">需备料物料</div></div>
+        <div class="prep-stat"><div class="num" id="prepTotal">0</div><div class="lbl">物料总数</div></div>
       </div>
-      <div class="prep-list" id="prepList" style="display:none;"></div>
+      <div class="prep-list" id="prepList"></div>
+      <div class="prep-empty" id="prepEmpty" style="display:none;">
+        📦 当前库存充足，暂无需要备料的物料
+      </div>
     </div>
   </div>
 
@@ -48,14 +50,78 @@
   <script src="js/supabase-config.js"></script>
   <script src="js/db.js"></script>
   <script src="js/data.js"></script>
+  <script src="js/store.js"></script>
   <script>
+    let MATERIALS = [];
+    let DONE = [];
+
     async function initPage() {
       await ChabaidaoDB.ready();
       const user = requireLogin('staff');
       if (!user) return;
       document.getElementById('userAvatar').textContent = user.name.charAt(0);
       document.getElementById('userName').textContent = user.name;
+
+      const mats = ChabaidaoDB.getMaterials();
+      MATERIALS = mats && mats.length ? mats : defaultMaterials();
+      if (!mats || !mats.length) ChabaidaoDB.setMaterials(MATERIALS);
+
+      DONE = ChabaidaoKV.get('prep_done', []);
+      document.getElementById('prepTotal').textContent = MATERIALS.length;
+      renderPrep();
     }
+
+    function renderPrep() {
+      const list = document.getElementById('prepList');
+      const empty = document.getElementById('prepEmpty');
+
+      // 库存低于预警线的物料优先（需备料），其余按缺口排序展示
+      const needPrep = MATERIALS.filter((m) => m.stock <= m.warnLine);
+      document.getElementById('prepNeed').textContent = needPrep.length;
+
+      const sorted = MATERIALS.slice().sort((a, b) => {
+        const ga = a.warnLine - a.stock;
+        const gb = b.warnLine - b.stock;
+        if (ga !== gb) return gb - ga; // 缺口大的在前
+        return a.category.localeCompare(b.category);
+      });
+
+      if (sorted.length === 0) {
+        list.innerHTML = '';
+        empty.style.display = 'block';
+        return;
+      }
+      empty.style.display = 'none';
+
+      list.innerHTML = sorted.map((m) => {
+        const gap = Math.max(0, m.warnLine - m.stock);
+        const suggest = Math.max(m.warnLine * 2 - m.stock, gap);
+        const isWarn = m.stock <= m.warnLine;
+        const done = DONE.includes(m.id);
+        const gapText = gap > 0
+          ? `缺口 <span class="gap">${gap} ${escapeHtml(m.unit)}</span>，建议备 ${suggest} ${escapeHtml(m.unit)}`
+          : `库存充足（预警线 ${escapeHtml(String(m.warnLine))} ${escapeHtml(m.unit)}）`;
+        return `
+          <div class="prep-row ${isWarn ? 'warn' : 'ok'} ${done ? 'done' : ''}">
+            <div class="prep-main">
+              <div class="prep-name">${escapeHtml(m.name)}<span class="prep-cat">${escapeHtml(m.category)}</span></div>
+              <div class="prep-sub">当前库存 ${escapeHtml(String(m.stock))} / ${escapeHtml(m.unit)} · ${gapText}</div>
+            </div>
+            <div class="prep-ops">
+              <button class="prep-done-btn" onclick="togglePrep('${m.id}')">${done ? '已备✓' : '标记已备'}</button>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    function togglePrep(id) {
+      const idx = DONE.indexOf(id);
+      if (idx >= 0) DONE.splice(idx, 1);
+      else DONE.push(id);
+      ChabaidaoKV.set('prep_done', DONE);
+      renderPrep();
+    }
+
     function doLogout() {
       logout();
       window.location.href = 'login.html';
