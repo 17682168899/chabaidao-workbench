@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#2563EB">
+  <title>清洁管理 · 茶百道工作台</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="admin-desktop">
+  <header class="topbar">
+    <h1>
+      <span class="logo">茶</span>
+      清洁管理
+    </h1>
+    <div class="actions">
+      <button onclick="goManagement()">🏠 管理后台</button>
+      <button onclick="doLogout()">退出</button>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- 统计 -->
+    <div class="card">
+      <h2 class="card-title"><span class="dot"></span>清洁任务概览</h2>
+      <div class="mat-stat-grid">
+        <div class="stat-item">
+          <div class="num" id="totalCount">0</div>
+          <div class="label">任务总数</div>
+        </div>
+        <div class="stat-item warn">
+          <div class="num" id="areaCount">0</div>
+          <div class="label">区域数</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 添加 / 编辑 -->
+    <div class="card">
+      <h2 class="card-title"><span class="dot"></span><span id="formTitle">添加清洁任务</span></h2>
+      <form id="cleanForm" class="kv-form" onsubmit="return saveTask(event)">
+        <div class="kv-row">
+          <label>所属区域</label>
+          <select id="cleanArea">
+            <option>设备</option>
+            <option>操作区</option>
+            <option>后场</option>
+            <option>环境</option>
+          </select>
+        </div>
+        <div class="kv-row">
+          <label>任务名称</label>
+          <input type="text" id="cleanName" placeholder="如 咖啡机每日清空" required>
+        </div>
+        <div class="kv-row">
+          <label>操作要求 / 注意事项</label>
+          <textarea id="cleanNote" rows="3" placeholder="断电清空后，用专用消毒液擦拭内胆与出冰口……"></textarea>
+        </div>
+        <div class="kv-actions">
+          <button type="submit" class="btn primary" id="cleanSubmitBtn">添加任务</button>
+          <button type="button" class="btn ghost" id="cleanCancelBtn" onclick="cancelEdit()" style="display:none;">取消编辑</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- 任务清单 -->
+    <div class="card">
+      <h2 class="card-title"><span class="dot"></span>清洁任务清单</h2>
+      <div class="mat-list" id="cleanList"></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase-config.js"></script>
+  <script src="js/db.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/clean-admin.js"></script>
+</body>
+</html>

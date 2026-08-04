@@ -238,6 +238,11 @@ function migrateData(data) {
       }
     });
   }
+  // 员工端工具数据：首次使用时播种，保留空数组语义（undefined 才播种）
+  if (data.recipes === undefined) { data.recipes = defaultRecipes(); changed = true; }
+  if (data.cleanTasks === undefined) { data.cleanTasks = defaultCleanTasks(); changed = true; }
+  if (data.prepDone === undefined) { data.prepDone = []; changed = true; }
+  if (data.cleanDone === undefined) { data.cleanDone = {}; changed = true; }
   if (changed) saveData(data);
   return data;
 }

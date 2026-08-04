@@ -66,9 +66,14 @@
       MATERIALS = mats && mats.length ? mats : defaultMaterials();
       if (!mats || !mats.length) ChabaidaoDB.setMaterials(MATERIALS);
 
-      DONE = ChabaidaoKV.get('prep_done', []);
+      DONE = ChabaidaoDB.getPrepDone();
       document.getElementById('prepTotal').textContent = MATERIALS.length;
       renderPrep();
+      // 备料「已备」状态云端同步（多人/多端共享）
+      ChabaidaoDB.onRemoteChange(() => {
+        DONE = ChabaidaoDB.getPrepDone();
+        renderPrep();
+      });
     }
 
     function renderPrep() {
@@ -118,7 +123,7 @@
       const idx = DONE.indexOf(id);
       if (idx >= 0) DONE.splice(idx, 1);
       else DONE.push(id);
-      ChabaidaoKV.set('prep_done', DONE);
+      ChabaidaoDB.setPrepDone(DONE);
       renderPrep();
     }
 

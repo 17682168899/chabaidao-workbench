@@ -57,6 +57,7 @@
   <script src="js/store.js"></script>
   <script>
     let RECIPES = [];
+    let currentKw = '';
 
     async function initPage() {
       await ChabaidaoDB.ready();
@@ -64,18 +65,25 @@
       if (!user) return;
       document.getElementById('userAvatar').textContent = user.name.charAt(0);
       document.getElementById('userName').textContent = user.name;
-      RECIPES = ChabaidaoKV.get('recipes', defaultRecipes());
-      renderRecipes('');
+      RECIPES = ChabaidaoDB.getRecipes();
+      renderRecipes(currentKw);
+      // 后台修改配方后实时刷新（云端多人共享）
+      ChabaidaoDB.onRemoteChange(() => {
+        RECIPES = ChabaidaoDB.getRecipes();
+        renderRecipes(currentKw);
+      });
     }
 
     function onRecipeSearch() {
       const kw = document.getElementById('recipeSearch').value.trim();
+      currentKw = kw;
       document.getElementById('recipeClear').classList.toggle('show', kw.length > 0);
       renderRecipes(kw);
     }
 
     function clearRecipeSearch() {
       document.getElementById('recipeSearch').value = '';
+      currentKw = '';
       document.getElementById('recipeClear').classList.remove('show');
       renderRecipes('');
     }

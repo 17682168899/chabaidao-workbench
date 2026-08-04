@@ -63,12 +63,19 @@
       document.getElementById('userAvatar').textContent = user.name.charAt(0);
       document.getElementById('userName').textContent = user.name;
 
-      TASKS = defaultCleanTasks();
+      TASKS = ChabaidaoDB.getCleanTasks();
       WEEK_KEY = 'clean_' + isoWeekKey(new Date());
-      DONE = ChabaidaoKV.get(WEEK_KEY, []);
+      DONE = ChabaidaoDB.getCleanDone(WEEK_KEY);
 
       document.getElementById('cpTotal').textContent = TASKS.length;
       renderClean();
+      // 多人/多端勾选状态实时同步（云端共享）
+      ChabaidaoDB.onRemoteChange(() => {
+        TASKS = ChabaidaoDB.getCleanTasks();
+        DONE = ChabaidaoDB.getCleanDone(WEEK_KEY);
+        document.getElementById('cpTotal').textContent = TASKS.length;
+        renderClean();
+      });
     }
 
     function renderClean() {
@@ -98,14 +105,14 @@
       const idx = DONE.indexOf(id);
       if (idx >= 0) DONE.splice(idx, 1);
       else DONE.push(id);
-      ChabaidaoKV.set(WEEK_KEY, DONE);
+      ChabaidaoDB.setCleanDone(WEEK_KEY, DONE);
       renderClean();
     }
 
     function resetCleanWeek() {
       if (!confirm('确定重置本周清洁任务？已勾选状态将清空。')) return;
       DONE = [];
-      ChabaidaoKV.set(WEEK_KEY, DONE);
+      ChabaidaoDB.setCleanDone(WEEK_KEY, DONE);
       renderClean();
       showToast('已重置本周');
     }

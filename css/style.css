@@ -1410,6 +1410,80 @@ button {
 }
 .admin-desktop .card-title { font-size: 16px; }
 
+/* ===================== 配方 / 清洁 后台管理 ===================== */
+.kv-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 4px;
+}
+.kv-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.kv-row label {
+  font-size: 13px;
+  color: var(--text-2);
+  font-weight: 500;
+}
+.kv-form input,
+.kv-form select,
+.kv-form textarea {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 9px 11px;
+  font-size: 14px;
+  font-family: inherit;
+  background: #fff;
+  resize: vertical;
+  box-sizing: border-box;
+}
+.kv-form input:focus,
+.kv-form select:focus,
+.kv-form textarea:focus {
+  outline: none;
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+.kv-actions {
+  display: flex;
+  gap: 10px;
+}
+.kv-actions .btn { height: 40px; padding: 0 22px; }
+
+/* 配方 / 清洁 清单行（复用 mat-list 容器） */
+.rcp-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  background: #F7FAFF;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.rcp-main {
+  min-width: 0;
+}
+.rcp-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-1);
+}
+.rcp-ings {
+  font-size: 12px;
+  color: var(--text-2);
+  margin-top: 4px;
+  line-height: 1.5;
+}
+.rcp-ops {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
 /* 卡片标题内按钮（上传文档识别） */
 .title-with-btn {
   justify-content: space-between;

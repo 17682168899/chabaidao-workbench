@@ -9,8 +9,15 @@
  *  - isRemote()              当前是否为云端模式
  *  - getApp() / setApp(data) 排班总数据（employees/currentWeek/schedules/settings）
  *  - getMaterials()/setMaterials(arr)  物料数组
+ *  - getRecipes()/setRecipes(arr)       配方数组（后台维护，云端同步）
+ *  - getCleanTasks()/setCleanTasks(arr) 周清任务数组（后台自定义，云端同步）
+ *  - getPrepDone()/setPrepDone(arr)     备料「已备」状态（云端同步）
+ *  - getCleanDone(week)/setCleanDone(week, arr)  周清「已勾选」状态（按 ISO 周，云端同步）
  *  - onRemoteChange(cb)      云端有其他人改动时触发（用于实时重渲染）
  *  - reset()                 清空本地与云端数据
+ *
+ * 说明：配方 / 周清任务 / 备料状态 与 排班 / 物料 同处 appCache（即 DATA 对象），
+ * 一并经 persistApp 落库，因此天然支持云端共享 + 实时订阅。
  */
 (function () {
   'use strict';
@@ -232,6 +239,56 @@
     persistMaterials(arr);
   }
 
+  /* ---------- 配方（后台维护，云端同步） ---------- */
+  function getRecipes() {
+    if (!appCache) return [];
+    return appCache.recipes || [];
+  }
+  function setRecipes(arr) {
+    ensureApp();
+    appCache.recipes = arr;
+    persistApp(appCache);
+  }
+
+  /* ---------- 周清任务（后台自定义，云端同步） ---------- */
+  function getCleanTasks() {
+    if (!appCache) return [];
+    return appCache.cleanTasks || [];
+  }
+  function setCleanTasks(arr) {
+    ensureApp();
+    appCache.cleanTasks = arr;
+    persistApp(appCache);
+  }
+
+  /* ---------- 备料「已备」状态（云端同步） ---------- */
+  function getPrepDone() {
+    if (!appCache) return [];
+    return appCache.prepDone || [];
+  }
+  function setPrepDone(arr) {
+    ensureApp();
+    appCache.prepDone = arr;
+    persistApp(appCache);
+  }
+
+  /* ---------- 周清「已勾选」状态（按 ISO 周，云端同步） ---------- */
+  function getCleanDone(weekKey) {
+    if (!appCache || !appCache.cleanDone) return [];
+    return appCache.cleanDone[weekKey] || [];
+  }
+  function setCleanDone(weekKey, arr) {
+    ensureApp();
+    if (!appCache.cleanDone) appCache.cleanDone = {};
+    appCache.cleanDone[weekKey] = arr;
+    persistApp(appCache);
+  }
+
+  /* appCache 为空时先用最小骨架占位，避免 setXxx 报错 */
+  function ensureApp() {
+    if (!appCache) appCache = { employees: [], currentWeek: '', schedules: {}, settings: {} };
+  }
+
   function persistApp(data) {
     if (mode === 'remote' && client) {
       client
@@ -274,6 +331,14 @@
     setApp,
     getMaterials,
     setMaterials,
+    getRecipes,
+    setRecipes,
+    getCleanTasks,
+    setCleanTasks,
+    getPrepDone,
+    setPrepDone,
+    getCleanDone,
+    setCleanDone,
     onRemoteChange: (cb) => { listeners.push(cb); },
     reset,
   };
