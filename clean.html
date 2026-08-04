@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#FFB800">
+  <title>周清 · 茶百道工作台</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="emp-mobile">
+  <!-- 顶部栏：当前登录员工 -->
+  <header class="topbar">
+    <h1>
+      <span class="logo">茶</span>
+      周清
+    </h1>
+    <div class="actions">
+      <div class="user-bar">
+        <div class="avatar" id="userAvatar">👤</div>
+        <span class="uname" id="userName">—</span>
+      </div>
+      <button onclick="doLogout()">退出</button>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="card">
+      <h2 class="card-title"><span class="dot"></span>本周清洁任务</h2>
+      <div class="empty-state" id="cleanEmpty">
+        <div class="icon">🧹</div>
+        <p>功能开发中，敬请期待</p>
+        <p style="font-size:12px;color:var(--text-3);margin-top:4px;">后续可展示每周清洁任务清单与完成情况</p>
+      </div>
+      <div class="clean-list" id="cleanList" style="display:none;"></div>
+    </div>
+  </div>
+
+  <nav class="emp-tabbar">
+    <button class="emp-tab" data-tab="attendance" onclick="location.href='employee.html'"><span class="ico">🏠</span><span>考勤</span></button>
+    <button class="emp-tab" data-tab="recipe" onclick="location.href='recipe.html'"><span class="ico">📖</span><span>配方查询</span></button>
+    <button class="emp-tab active" data-tab="clean" onclick="location.href='clean.html'"><span class="ico">🧹</span><span>周清</span></button>
+    <button class="emp-tab" data-tab="prep" onclick="location.href='prep.html'"><span class="ico">📦</span><span>备料</span></button>
+  </nav>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase-config.js"></script>
+  <script src="js/db.js"></script>
+  <script src="js/data.js"></script>
+  <script>
+    async function initPage() {
+      await ChabaidaoDB.ready();
+      const user = requireLogin('staff');
+      if (!user) return;
+      document.getElementById('userAvatar').textContent = user.name.charAt(0);
+      document.getElementById('userName').textContent = user.name;
+    }
+    function doLogout() {
+      logout();
+      window.location.href = 'login.html';
+    }
+    initPage();
+  </script>
+</body>
+</html>

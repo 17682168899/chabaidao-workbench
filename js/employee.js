@@ -29,7 +29,9 @@ async function init() {
   document.getElementById('userName').textContent = CURRENT_USER.name;
 
   renderHero();
-  setupTabbar();
+  document.querySelectorAll('.emp-tabbar .emp-tab').forEach((tab) => {
+    tab.classList.toggle('active', tab.dataset.tab === 'attendance');
+  });
   render();
 }
 
@@ -368,27 +370,6 @@ function localAttendanceRange(slots) {
   const endLbl = labels[last];
   const hours = (workCount * (interval / 60)).toFixed(1);
   return { start: startLbl, end: endLbl, hours };
-}
-
-// 底部导航：点击平滑滚动到对应区块
-function setupTabbar() {
-  const tabs = document.querySelectorAll('.emp-tabbar .emp-tab');
-  tabs.forEach((tab) => {
-    tab.addEventListener('click', () => {
-      const target = tab.getAttribute('data-target');
-      tabs.forEach((t) => t.classList.remove('active'));
-      tab.classList.add('active');
-      if (target === 'top') {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      } else {
-        const el = document.getElementById(target);
-        if (el) {
-          const y = el.getBoundingClientRect().top + window.pageYOffset - 60;
-          window.scrollTo({ top: y, behavior: 'smooth' });
-        }
-      }
-    });
-  });
 }
 
 // 启动
