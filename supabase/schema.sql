@@ -35,5 +35,12 @@ drop policy if exists "anon_all_mat" on materials_state;
 create policy "anon_all_mat" on materials_state for all to anon using (true) with check (true);
 
 -- 4) 开启实时发布（前端 .subscribe 依赖此配置）
+do $$
+begin
+  if not exists (select 1 from pg_publication where pubname = 'supabase_realtime') then
+    create publication supabase_realtime with (publish = 'insert, update, delete, truncate');
+  end if;
+end $$;
+
 alter publication supabase_realtime add table app_state;
 alter publication supabase_realtime add table materials_state;
