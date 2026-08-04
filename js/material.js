@@ -1,11 +1,9 @@
 /**
  * 物料管理
- * 数据独立存储于 localStorage（与排班数据隔离），不随排班迁移逻辑影响
+ * 数据通过统一数据层（js/db.js）读写，支持云端共享 + 实时同步
  */
-const MAT_KEY = 'chabadao_materials_v1';
-
-const CURRENT_USER = requireLogin('admin');
-let MATERIALS = loadMaterials();
+let CURRENT_USER = null;
+let MATERIALS = [];
 
 // 转义 HTML，防止物料名/文档内容造成的 XSS
 function escapeHtml(s) {
@@ -15,19 +13,17 @@ function escapeHtml(s) {
 }
 
 function loadMaterials() {
-  try {
-    const raw = localStorage.getItem(MAT_KEY);
-    if (!raw) return defaultMaterials();
-    const arr = JSON.parse(raw);
-    return Array.isArray(arr) ? arr : defaultMaterials();
-  } catch (e) {
-    console.error('加载物料数据失败：', e);
-    return defaultMaterials();
+  const arr = ChabaidaoDB.getMaterials();
+  if (arr === null || arr === undefined) {
+    const def = defaultMaterials();
+    ChabaidaoDB.setMaterials(def);
+    return def;
   }
+  return arr;
 }
 
 function saveMaterials() {
-  localStorage.setItem(MAT_KEY, JSON.stringify(MATERIALS));
+  ChabaidaoDB.setMaterials(MATERIALS);
 }
 
 function defaultMaterials() {
@@ -291,4 +287,17 @@ docDrop.addEventListener('drop', (e) => {
   reader.readAsText(file, 'utf-8');
 });
 
-renderMaterials();
+// 初始化：等数据层就绪（本地或云端）后再渲染
+async function init() {
+  await ChabaidaoDB.ready();
+  CURRENT_USER = requireLogin('admin');
+  if (!CURRENT_USER) return; // 未登录，已跳转登录页
+  MATERIALS = loadMaterials();
+  renderMaterials();
+  // 云端有其他人改动时，自动刷新物料列表
+  ChabaidaoDB.onRemoteChange(() => {
+    MATERIALS = loadMaterials();
+    renderMaterials();
+  });
+}
+init();

@@ -228,20 +228,19 @@ function migrateData(data) {
 
 function loadData() {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) {
+    let data = ChabaidaoDB.getApp();
+    if (!data) {
       const settings = JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
       const def = buildDefaultSchedules(settings);
-      const data = {
+      data = {
         employees: JSON.parse(JSON.stringify(DEFAULT_EMPLOYEES)),
         currentWeek: def.monday,
         schedules: def.schedules,
         settings,
       };
-      saveData(data);
-      return data;
+      ChabaidaoDB.setApp(data);
     }
-    return migrateData(JSON.parse(raw));
+    return migrateData(data);
   } catch (e) {
     console.error('加载数据失败：', e);
     return null;
@@ -249,7 +248,7 @@ function loadData() {
 }
 
 function saveData(data) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  ChabaidaoDB.setApp(data);
 }
 
 function getBusinessSettings(data) {
@@ -263,7 +262,7 @@ function saveBusinessSettings(data, settings) {
 }
 
 function resetData() {
-  localStorage.removeItem(STORAGE_KEY);
+  ChabaidaoDB.reset();
   sessionStorage.removeItem(SESSION_KEY);
   return loadData();
 }

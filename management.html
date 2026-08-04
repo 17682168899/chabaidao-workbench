@@ -56,39 +56,44 @@
   <!-- Toast -->
   <div class="toast" id="toast"></div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase-config.js"></script>
+  <script src="js/db.js"></script>
   <script src="js/data.js"></script>
   <script>
-    const CURRENT_USER = requireLogin('admin');
-    if (!CURRENT_USER) { /* 已跳转 */ }
-    else {
-      document.getElementById('userName').textContent = CURRENT_USER.name;
-      document.getElementById('userAvatar').textContent = CURRENT_USER.role === 'admin' ? '👑' : '👤';
-    }
-
-    function goModule(key) {
-      if (key === 'attendance') {
-        window.location.href = 'admin.html';
-      } else if (key === 'material') {
-        window.location.href = 'material.html';
-      } else {
-        showToast('功能开发中，敬请期待');
+    ChabaidaoDB.ready().then(function () {
+      const CURRENT_USER = requireLogin('admin');
+      if (!CURRENT_USER) { /* 已跳转 */ }
+      else {
+        document.getElementById('userName').textContent = CURRENT_USER.name;
+        document.getElementById('userAvatar').textContent = CURRENT_USER.role === 'admin' ? '👑' : '👤';
       }
-    }
 
-    function doLogout() {
-      sessionStorage.removeItem(SESSION_KEY);
-      window.location.href = 'login.html';
-    }
+      window.goModule = function (key) {
+        if (key === 'attendance') {
+          window.location.href = 'admin.html';
+        } else if (key === 'material') {
+          window.location.href = 'material.html';
+        } else {
+          window.showToast('功能开发中，敬请期待');
+        }
+      };
 
-    let toastTimer = null;
-    function showToast(msg) {
-      const el = document.getElementById('toast');
-      if (!el) return;
-      el.textContent = msg;
-      el.classList.add('show');
-      clearTimeout(toastTimer);
-      toastTimer = setTimeout(() => el.classList.remove('show'), 2000);
-    }
+      window.doLogout = function () {
+        sessionStorage.removeItem(SESSION_KEY);
+        window.location.href = 'login.html';
+      };
+
+      let toastTimer = null;
+      window.showToast = function (msg) {
+        const el = document.getElementById('toast');
+        if (!el) return;
+        el.textContent = msg;
+        el.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(function () { el.classList.remove('show'); }, 2000);
+      };
+    });
   </script>
 </body>
 </html>

@@ -6,7 +6,8 @@ let DATA = null;
 let CURRENT_USER = null;
 let modalConfirmCb = null;
 
-function init() {
+async function init() {
+  await ChabaidaoDB.ready();
   CURRENT_USER = requireLogin('admin');
   if (!CURRENT_USER) return;
   DATA = loadData();
@@ -15,6 +16,11 @@ function init() {
   document.getElementById('userName').textContent = CURRENT_USER.name;
 
   renderList();
+  // 云端有改动时刷新员工列表
+  ChabaidaoDB.onRemoteChange(() => {
+    if (!CURRENT_USER) return;
+    renderList();
+  });
 }
 
 function renderList() {

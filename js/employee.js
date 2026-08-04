@@ -10,7 +10,8 @@ let CURRENT_WEEK = null;   // YYYY-MM-DD (Monday)
 const WEEKDAY_NAME = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
 
 // 初始化（带登录守卫）
-function init() {
+async function init() {
+  await ChabaidaoDB.ready();
   // 必须是员工身份
   CURRENT_USER = requireLogin('staff');
   if (!CURRENT_USER) return; // 已跳转
@@ -32,6 +33,12 @@ function render() {
   renderCalendar();
   renderMySchedule();
   renderTodayOthers();
+
+  ChabaidaoDB.onRemoteChange(() => {
+    if (!CURRENT_USER) return;
+    DATA = loadData();
+    render();
+  });
 }
 
 function renderWeekNav() {

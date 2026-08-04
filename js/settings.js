@@ -3,15 +3,21 @@
 let DATA = null;
 let toastTimer = null;
 
-function init() {
+async function init() {
+  await ChabaidaoDB.ready();
   requireLogin('admin');
   DATA = loadData();
   renderUserBar();
   loadSettings();
+  // 云端有改动时同步营业设置
+  ChabaidaoDB.onRemoteChange(() => {
+    DATA = loadData();
+    loadSettings();
+  });
 }
 
 function renderUserBar() {
-  const user = getCurrentUser();
+  const user = getCurrentUser(DATA);
   if (user) {
     const nameEl = document.getElementById('userName');
     const avatarEl = document.getElementById('userAvatar');

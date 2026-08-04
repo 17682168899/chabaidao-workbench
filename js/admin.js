@@ -18,7 +18,8 @@ let DIRTY = false;             // 本周是否有过未保存改动
 const WEEKDAY_NAME = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
 
 // 初始化（带登录守卫）
-function init() {
+async function init() {
+  await ChabaidaoDB.ready();
   CURRENT_USER = requireLogin('admin');
   if (!CURRENT_USER) return; // 已跳转
 
@@ -35,6 +36,12 @@ function init() {
 
   bindModeSegment();
   render();
+  // 云端有改动时实时刷新（涂色过程中不打断）
+  ChabaidaoDB.onRemoteChange(() => {
+    if (IS_PAINTING || !CURRENT_USER) return;
+    DATA = loadData();
+    render();
+  });
 }
 
 function bindModeSegment() {

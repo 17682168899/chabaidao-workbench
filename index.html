@@ -29,58 +29,63 @@
   </div>
 
   <div style="text-align: center; padding: 12px; color: var(--text-3); font-size: 12px;">
-    v1.1 · 账号登录版 · 数据保存在本机浏览器
+    v1.31 · 账号登录版 · 支持云端实时同步
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase-config.js"></script>
+  <script src="js/db.js"></script>
   <script src="js/data.js"></script>
   <script>
-    const DATA = loadData();
-    const cur = getCurrentUser(DATA);
+    ChabaidaoDB.ready().then(function () {
+      const DATA = loadData();
+      const cur = getCurrentUser(DATA);
 
-    const topActions = document.getElementById('topActions');
-    const mainArea = document.getElementById('mainArea');
+      const topActions = document.getElementById('topActions');
+      const mainArea = document.getElementById('mainArea');
 
-    if (cur) {
-      // 已登录：显示进入工作台 + 退出
-      topActions.innerHTML = `
-        <div class="user-bar">
-          <div class="avatar">${cur.name.charAt(0)}</div>
-          <span class="uname">${cur.name}</span>
-        </div>
-        <button onclick="doLogout()">退出</button>
-      `;
-      const roleLabel = cur.role === 'admin' ? '管理员端' : '员工端';
-      const icon = cur.role === 'admin' ? '📋' : '👨‍🍳';
-      const cls = cur.role === 'admin' ? 'admin' : 'staff';
-      const target = cur.role === 'admin' ? 'admin.html' : 'employee.html';
-      mainArea.innerHTML = `
-        <div class="role-card ${cls}" onclick="window.location.href='${target}'">
-          <div class="icon">${icon}</div>
-          <div class="info">
-            <h3>进入${roleLabel}</h3>
-            <p>欢迎回来，${cur.name}！点击进入您的工作台</p>
+      if (cur) {
+        // 已登录：显示进入工作台 + 退出
+        topActions.innerHTML = `
+          <div class="user-bar">
+            <div class="avatar">${cur.name.charAt(0)}</div>
+            <span class="uname">${cur.name}</span>
           </div>
-          <div class="arrow">›</div>
-        </div>
-      `;
-    } else {
-      // 未登录：显示登录入口
-      mainArea.innerHTML = `
-        <div class="role-card staff" onclick="window.location.href='login.html'">
-          <div class="icon">🔐</div>
-          <div class="info">
-            <h3>登录工作台</h3>
-            <p>员工与管理员请使用账号密码登录</p>
+          <button onclick="doLogout()">退出</button>
+        `;
+        const roleLabel = cur.role === 'admin' ? '管理员端' : '员工端';
+        const icon = cur.role === 'admin' ? '📋' : '👨‍🍳';
+        const cls = cur.role === 'admin' ? 'admin' : 'staff';
+        const target = cur.role === 'admin' ? 'admin.html' : 'employee.html';
+        mainArea.innerHTML = `
+          <div class="role-card ${cls}" onclick="window.location.href='${target}'">
+            <div class="icon">${icon}</div>
+            <div class="info">
+              <h3>进入${roleLabel}</h3>
+              <p>欢迎回来，${cur.name}！点击进入您的工作台</p>
+            </div>
+            <div class="arrow">›</div>
           </div>
-          <div class="arrow">›</div>
-        </div>
-      `;
-    }
+        `;
+      } else {
+        // 未登录：显示登录入口
+        mainArea.innerHTML = `
+          <div class="role-card staff" onclick="window.location.href='login.html'">
+            <div class="icon">🔐</div>
+            <div class="info">
+              <h3>登录工作台</h3>
+              <p>员工与管理员请使用账号密码登录</p>
+            </div>
+            <div class="arrow">›</div>
+          </div>
+        `;
+      }
 
-    function doLogout() {
-      logout();
-      window.location.reload();
-    }
+      window.doLogout = function () {
+        logout();
+        window.location.reload();
+      };
+    });
   </script>
 </body>
 </html>
