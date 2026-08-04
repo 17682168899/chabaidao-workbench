@@ -97,6 +97,7 @@
     }
 
     mountBadge();
+    showCloudNotice();
   }
 
   function ready() {
@@ -188,6 +189,27 @@
       el.style.transition = 'box-shadow .6s ease';
       el.style.boxShadow = '0 2px 8px rgba(0,0,0,.15)';
     }, 80);
+  }
+
+  /* ---------- 首次连上云端的提示弹窗 ---------- */
+  function showCloudNotice() {
+    try {
+      if (mode !== 'remote') return;
+      if (localStorage.getItem('chabaidao_cloud_noticed') === '1') return;
+      localStorage.setItem('chabaidao_cloud_noticed', '1');
+      const overlay = document.createElement('div');
+      overlay.id = 'cloudNotice';
+      overlay.style.cssText = 'position:fixed;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;background:rgba(15,23,42,.45);font-family:system-ui,-apple-system,sans-serif;';
+      overlay.innerHTML =
+        '<div style="background:#fff;border-radius:16px;max-width:340px;width:88%;padding:24px 22px;box-shadow:0 20px 60px rgba(0,0,0,.25);text-align:center;">' +
+          '<div style="font-size:40px;line-height:1;margin-bottom:10px;">☁️</div>' +
+          '<div style="font-size:17px;font-weight:700;color:#1f2937;margin-bottom:8px;">云端同步已开启</div>' +
+          '<div style="font-size:13px;color:#6b7280;line-height:1.6;">你的排班与物料数据现在保存在云端，支持多设备、多人实时共享。右下角状态显示「☁ 云端同步」即表示已连接。</div>' +
+          '<button style="margin-top:18px;width:100%;padding:10px;border:0;border-radius:10px;background:#2f6bff;color:#fff;font-size:15px;cursor:pointer;" onclick="this.closest(\'#cloudNotice\').remove()">知道了</button>' +
+        '</div>';
+      document.body.appendChild(overlay);
+      overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+    } catch (e) { /* 忽略 */ }
   }
 
   /* ---------- 读写接口（页面调用） ---------- */
