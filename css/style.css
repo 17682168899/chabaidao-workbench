@@ -1737,6 +1737,41 @@ button {
   box-shadow: 0 0 0 2px var(--brand-primary) inset;
 }
 
+/* 今日班表（员工端） */
+.duty-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: #FAFAFA;
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  font-size: 14px;
+  color: var(--text-1);
+}
+.duty-row .nm {
+  font-weight: 500;
+  min-width: 64px;
+  flex-shrink: 0;
+}
+.duty-row .time {
+  flex: 1;
+  text-align: center;
+  color: var(--text-1);
+  font-weight: 500;
+  font-size: 13px;
+}
+.duty-row .hours {
+  min-width: 48px;
+  text-align: right;
+  font-weight: 700;
+  color: var(--accent-work);
+  font-size: 15px;
+}
+.duty-row.rest { background: rgba(245, 158, 11, 0.08); }
+.duty-row.rest .time { color: var(--accent-rest); font-weight: 400; }
+.duty-row.rest .hours { display: none; }
+
 /* 底部导航栏 */
 .emp-tabbar {
   position: fixed;

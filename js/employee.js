@@ -247,42 +247,67 @@ function closeDayModal() {
 function renderTodayOthers() {
   const today = formatDate(new Date());
   const list = document.getElementById('todayList');
-  const interval = getBusinessSettings(DATA).slotInterval;
-  const slotCount = getSlotCount(DATA.settings);
+  const settings = getBusinessSettings(DATA);
   const others = DATA.employees.filter((e) => e.id !== CURRENT_EMP_ID);
   if (others.length === 0) {
     list.innerHTML = '<div class="empty-state"><div class="icon">👥</div><p>暂无其他员工</p></div>';
     return;
   }
 
-  let html = '';
+  const rows = [];
   others.forEach((emp) => {
     const slots = getSchedule(DATA, emp.id, today);
-    const workCells = slots.filter((s) => s === 1).length;
-    const restCells = slots.filter((s) => s === 2).length;
-    const workHours = (workCells * (interval / 60)).toFixed(1);
-    const restHours = (restCells * (interval / 60)).toFixed(1);
+    const info = dayWorkInfoFor(slots);
+    const restRanges = getRestRangesEmp(slots, settings);
 
-    let status = '未排班';
-    let barFill = '0%';
-    let barCls = '';
-    if (workCells > 0) {
-      status = `${workHours}h`;
-      barFill = `${Math.min(100, (workCells / slotCount) * 100)}%`;
-    } else if (restCells > 0) {
-      status = `休息 ${restHours}h`;
-      barCls = 'rest';
-      barFill = '100%';
+    if (info.hasWork) {
+      rows.push({
+        name: emp.name,
+        type: 'work',
+        time: `${info.start} - ${info.end}`,
+        hours: `${info.hours}h`,
+      });
+    } else if (slots.some((s) => s === 2)) {
+      const restText = restRanges.map((r) => `${r.start} - ${r.end}`).join('、') || '休息';
+      rows.push({
+        name: emp.name,
+        type: 'rest',
+        time: restText,
+        hours: '',
+      });
     }
-    html += `
-      <div class="row">
-        <span class="nm">${emp.name}</span>
-        <div class="bar"><div class="${barCls}" style="width:${barFill}"></div></div>
-        <span class="meta">${status}</span>
-      </div>
-    `;
+    // 未排班的同事不显示
   });
-  list.innerHTML = html;
+
+  if (rows.length === 0) {
+    list.innerHTML = '<div class="empty-state"><div class="icon">👥</div><p>今日暂无同事排班</p></div>';
+    return;
+  }
+
+  list.innerHTML = rows.map((r) => `
+    <div class="duty-row ${r.type}">
+      <span class="nm">${r.name}</span>
+      <span class="time">${r.time}</span>
+      <span class="hours">${r.hours}</span>
+    </div>
+  `).join('');
+}
+
+// 复用 dayWorkInfo 逻辑，但支持传入 slots 而不依赖全局 DATA 类型检查
+function dayWorkInfoFor(slots) {
+  const settings = DATA.settings;
+  const labels = getSlotLabels(settings);
+  const { startMin, interval } = getSlotSettings(settings);
+  let first = -1, last = -1, workCount = 0;
+  slots.forEach((v, i) => {
+    if (v === 1 || v === 2) { if (first < 0) first = i; last = i; }
+    if (v === 1) workCount++;
+  });
+  if (workCount === 0) return { hasWork: false, hours: 0 };
+  const startLbl = first === 0 ? getBusinessSettings(DATA).businessStart : labels[first - 1];
+  const endLbl = labels[last];
+  const hours = (workCount * (interval / 60)).toFixed(1);
+  return { hasWork: true, hours, start: startLbl, end: endLbl };
 }
 
 function doLogout() {
