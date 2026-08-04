@@ -64,6 +64,29 @@ function goEmployees() {
   window.location.href = 'admin-employees.html';
 }
 
+function changeAdminPassword() {
+  const curEl = document.getElementById('curPwd');
+  const newEl = document.getElementById('newPwd');
+  const confirmEl = document.getElementById('confirmPwd');
+  const cur = curEl.value;
+  const neu = newEl.value;
+  const confirm = confirmEl.value;
+
+  const me = getCurrentUser(DATA);
+  if (!me) { showToast('❌ 未找到当前管理员账号'); return; }
+  if (!cur || !neu || !confirm) { showToast('❌ 请填写所有密码项'); return; }
+  if (cur !== me.password) { showToast('❌ 当前密码不正确'); return; }
+  if (neu.length < 4) { showToast('❌ 新密码至少 4 位'); return; }
+  if (neu !== confirm) { showToast('❌ 两次输入的新密码不一致'); return; }
+
+  me.password = neu;
+  saveData(DATA);
+  curEl.value = '';
+  newEl.value = '';
+  confirmEl.value = '';
+  showToast('✓ 管理员密码已更新');
+}
+
 function goBack() {
   window.location.href = 'admin.html';
 }

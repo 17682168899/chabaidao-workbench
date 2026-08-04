@@ -64,6 +64,29 @@
       </div>
     </div>
 
+    <!-- 修改管理员密码 -->
+    <div class="card">
+      <h2 class="card-title"><span class="dot"></span>修改管理员密码</h2>
+      <p class="settings-tip">修改当前登录管理员账号的登录密码。</p>
+      <div class="settings-form">
+        <div class="form-group">
+          <label>当前密码</label>
+          <input type="password" id="curPwd" placeholder="请输入当前密码" autocomplete="current-password">
+        </div>
+        <div class="form-group">
+          <label>新密码</label>
+          <input type="password" id="newPwd" placeholder="至少 4 位" autocomplete="new-password">
+        </div>
+        <div class="form-group">
+          <label>确认新密码</label>
+          <input type="password" id="confirmPwd" placeholder="再次输入新密码" autocomplete="new-password">
+        </div>
+        <div class="form-actions">
+          <button class="btn primary" onclick="changeAdminPassword()">🔑 更新密码</button>
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <!-- Toast -->
