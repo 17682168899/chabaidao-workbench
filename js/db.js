@@ -159,6 +159,8 @@
   /* ---------- 同步状态徽标 ---------- */
   function mountBadge() {
     try {
+      // 员工端不显示云端同步徽标
+      if (document.body && document.body.classList.contains('emp-mobile')) return;
       let el = document.getElementById('cloudBadge');
       if (!el) {
         el = document.createElement('div');
@@ -194,6 +196,8 @@
   /* ---------- 首次连上云端的提示弹窗 ---------- */
   function showCloudNotice() {
     try {
+      // 员工端不弹出云端同步提示
+      if (document.body && document.body.classList.contains('emp-mobile')) return;
       if (mode !== 'remote') return;
       if (localStorage.getItem('chabaidao_cloud_noticed') === '1') return;
       localStorage.setItem('chabaidao_cloud_noticed', '1');
