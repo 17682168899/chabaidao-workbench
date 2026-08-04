@@ -107,9 +107,9 @@ function renderScheduleTable() {
   html += '</tr>';
   html += '</thead>';
 
-  // 表体：每位员工一行
+  // 表体：只显示参与排班的员工（管理员不排班）
   html += '<tbody>';
-  DATA.employees.forEach((emp) => {
+  DATA.employees.filter((e) => e.role !== 'admin').forEach((emp) => {
     html += renderEditableRow(emp.id, d);
   });
   html += '</tbody>';
@@ -143,7 +143,7 @@ function renderHoursList() {
   const dates = getWeekDates(monday);
   let html = '';
   const interval = getBusinessSettings(DATA).slotInterval;
-  DATA.employees.forEach((emp) => {
+  DATA.employees.filter((e) => e.role !== 'admin').forEach((emp) => {
     let total = 0;
     let workDays = 0;
     dates.forEach((d) => {
@@ -177,7 +177,7 @@ function renderMonthHoursList() {
 
   let html = '';
   const interval = getBusinessSettings(DATA).slotInterval;
-  DATA.employees.forEach((emp) => {
+  DATA.employees.filter((e) => e.role !== 'admin').forEach((emp) => {
     let total = 0;
     let workDays = 0;
     dates.forEach((d) => {
@@ -395,7 +395,7 @@ function clearDay() {
     `此操作将清除 ${dateLabel} 所有员工的排班数据，确定继续吗？`,
     () => {
       const count = getSlotCount(DATA.settings);
-      DATA.employees.forEach((emp) => {
+      DATA.employees.filter((e) => e.role !== 'admin').forEach((emp) => {
         setSchedule(DATA, emp.id, CURRENT_DATE, new Array(count).fill(0));
       });
       render();

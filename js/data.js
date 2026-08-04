@@ -120,7 +120,7 @@ function buildDefaultSchedules(settings) {
     date.setDate(monday.getDate() + d);
     const key = formatDate(date);
     schedules[key] = {};
-    DEFAULT_EMPLOYEES.forEach((emp, idx) => {
+    DEFAULT_EMPLOYEES.filter((emp) => emp.role !== 'admin').forEach((emp, idx) => {
       const startHour = 8 + (idx % 4);
       const workHours = 4 + ((idx + d) % 5);
       const arr = new Array(count).fill(0);
@@ -197,6 +197,22 @@ function migrateData(data) {
       emp.name = emp.name.replace(/\s*[（(]管理员[)）]\s*/g, '').trim();
       changed = true;
     }
+  });
+  // 清理重复的管理员账号（保留第一个），并删除管理员在排班表中的数据
+  const admins = data.employees.filter((e) => e.role === 'admin');
+  if (admins.length > 1) {
+    admins.slice(1).forEach((dup) => {
+      data.employees = data.employees.filter((e) => e.id !== dup.id);
+    });
+    changed = true;
+  }
+  Object.keys(data.schedules || {}).forEach((dateKey) => {
+    data.employees.forEach((emp) => {
+      if (emp.role === 'admin' && data.schedules[dateKey][emp.id]) {
+        delete data.schedules[dateKey][emp.id];
+        changed = true;
+      }
+    });
   });
   // 确保至少有一个管理员
   if (!data.employees.some((e) => e.role === 'admin')) {

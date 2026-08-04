@@ -33,20 +33,20 @@ function renderList() {
   }
 
   let html = '';
-  // 管理员排前面
-  const sorted = DATA.employees.slice().sort((a, b) => {
-    if (a.role === b.role) return 0;
-    return a.role === 'admin' ? -1 : 1;
-  });
-  sorted.forEach((emp) => {
+  // 管理员账号不参与排班，也不在员工列表中显示/管理
+  const staffOnly = DATA.employees.filter((e) => e.role !== 'admin');
+  if (staffOnly.length === 0) {
+    list.innerHTML = '<div class="empty-state"><div class="icon">👥</div><p>暂无员工，请添加</p></div>';
+    return;
+  }
+  staffOnly.forEach((emp) => {
     const isSelf = emp.id === CURRENT_USER.id;
     html += `
-      <div class="emp-row ${emp.role === 'admin' ? 'admin' : ''}">
+      <div class="emp-row">
         <div class="avatar">${emp.name.charAt(0)}</div>
         <div class="info">
           <div class="nm">
             ${emp.name}
-            ${emp.role === 'admin' ? '<span class="tag">管理员</span>' : ''}
             ${isSelf ? '<span class="tag" style="background:#4A90E2;">我</span>' : ''}
           </div>
           <div class="meta">${emp.position || '未设置岗位'} · 账号 ${emp.username}</div>
@@ -54,7 +54,7 @@ function renderList() {
         <div class="ops">
           <button title="编辑" onclick="openEditSheet('${emp.id}')">✏️</button>
           <button title="重置密码" onclick="confirmResetPwd('${emp.id}')">🔑</button>
-          <button title="删除" class="danger" onclick="confirmDelete('${emp.id}')" ${isSelf ? 'disabled style="opacity:0.3;"' : ''}>🗑</button>
+          <button title="删除" class="danger" onclick="confirmDelete('${emp.id}')">🗑</button>
         </div>
       </div>
     `;

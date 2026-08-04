@@ -248,7 +248,7 @@ function renderTodayOthers() {
   const today = formatDate(new Date());
   const list = document.getElementById('todayList');
   const settings = getBusinessSettings(DATA);
-  const others = DATA.employees.filter((e) => e.id !== CURRENT_EMP_ID);
+  const others = DATA.employees.filter((e) => e.id !== CURRENT_EMP_ID && e.role !== 'admin');
   if (others.length === 0) {
     list.innerHTML = '<div class="empty-state"><div class="icon">👥</div><p>暂无其他员工</p></div>';
     return;
