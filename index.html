@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#FFB800">
+  <title>茶百道工作台</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- 顶部栏 -->
+  <header class="topbar">
+    <h1><span class="logo">茶</span> 茶百道工作台</h1>
+    <div class="actions" id="topActions"></div>
+  </header>
+
+  <!-- 品牌主视觉 -->
+  <section class="hero">
+    <div class="brand-logo">🧋</div>
+    <h1>茶百道工作台</h1>
+    <p>智能排班 · 高效协作</p>
+  </section>
+
+  <!-- 主入口 -->
+  <div class="role-list" id="mainArea">
+    <!-- 由 JS 渲染 -->
+  </div>
+
+  <div style="text-align: center; padding: 12px; color: var(--text-3); font-size: 12px;">
+    v1.1 · 账号登录版 · 数据保存在本机浏览器
+  </div>
+
+  <script src="js/data.js"></script>
+  <script>
+    const DATA = loadData();
+    const cur = getCurrentUser(DATA);
+
+    const topActions = document.getElementById('topActions');
+    const mainArea = document.getElementById('mainArea');
+
+    if (cur) {
+      // 已登录：显示进入工作台 + 退出
+      topActions.innerHTML = `
+        <div class="user-bar">
+          <div class="avatar">${cur.name.charAt(0)}</div>
+          <span class="uname">${cur.name}</span>
+        </div>
+        <button onclick="doLogout()">退出</button>
+      `;
+      const roleLabel = cur.role === 'admin' ? '管理员端' : '员工端';
+      const icon = cur.role === 'admin' ? '📋' : '👨‍🍳';
+      const cls = cur.role === 'admin' ? 'admin' : 'staff';
+      const target = cur.role === 'admin' ? 'admin.html' : 'employee.html';
+      mainArea.innerHTML = `
+        <div class="role-card ${cls}" onclick="window.location.href='${target}'">
+          <div class="icon">${icon}</div>
+          <div class="info">
+            <h3>进入${roleLabel}</h3>
+            <p>欢迎回来，${cur.name}！点击进入您的工作台</p>
+          </div>
+          <div class="arrow">›</div>
+        </div>
+      `;
+    } else {
+      // 未登录：显示登录入口
+      mainArea.innerHTML = `
+        <div class="role-card staff" onclick="window.location.href='login.html'">
+          <div class="icon">🔐</div>
+          <div class="info">
+            <h3>登录工作台</h3>
+            <p>员工与管理员请使用账号密码登录</p>
+          </div>
+          <div class="arrow">›</div>
+        </div>
+      `;
+    }
+
+    function doLogout() {
+      logout();
+      window.location.reload();
+    }
+  </script>
+</body>
+</html>

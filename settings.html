@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#2563EB">
+  <title>设置 · 茶百道工作台</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="admin-desktop">
+  <!-- 顶部栏 -->
+  <header class="topbar">
+    <h1>
+      <span class="logo">茶</span>
+      设置
+    </h1>
+    <div class="actions">
+      <div class="user-bar">
+        <div class="avatar" id="userAvatar">👤</div>
+        <span class="uname" id="userName">—</span>
+      </div>
+      <button onclick="goBack()">返回</button>
+    </div>
+  </header>
+
+  <div class="container">
+
+    <!-- 营业时间设置 -->
+    <div class="card">
+      <h2 class="card-title"><span class="dot"></span>营业时间设置</h2>
+      <div class="settings-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label>营业开始时间</label>
+            <input type="time" id="businessStart" value="07:00">
+          </div>
+          <div class="form-group">
+            <label>营业结束时间</label>
+            <input type="time" id="businessEnd" value="24:00">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>时段间隔</label>
+          <select id="slotInterval">
+            <option value="15">15 分钟</option>
+            <option value="30" selected>30 分钟</option>
+            <option value="60">60 分钟</option>
+          </select>
+        </div>
+        <div class="form-actions">
+          <button class="btn primary" onclick="saveSettings()">💾 保存设置</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 员工管理 -->
+    <div class="card">
+      <h2 class="card-title"><span class="dot"></span>员工管理</h2>
+      <p class="settings-tip">添加、编辑、重置员工账号密码。</p>
+      <div class="settings-actions">
+        <button class="btn primary" onclick="goEmployees()">👥 进入员工管理</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script src="js/data.js"></script>
+  <script src="js/settings.js"></script>
+</body>
+</html>

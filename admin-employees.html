@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#2563EB">
+  <title>员工管理 · 茶百道工作台</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="admin-desktop">
+  <!-- 顶部栏 -->
+  <header class="topbar">
+    <h1>
+      <span class="logo">茶</span>
+      员工管理
+    </h1>
+    <div class="actions">
+      <div class="user-bar">
+        <div class="avatar" id="userAvatar">👤</div>
+        <span class="uname" id="userName">—</span>
+      </div>
+      <button onclick="goBack()">返回</button>
+    </div>
+  </header>
+
+  <div class="container">
+
+    <div class="card">
+      <h2 class="card-title"><span class="dot"></span>员工列表</h2>
+      <div class="emp-list" id="empList"></div>
+    </div>
+
+    <div class="add-bar">
+      <button class="btn primary add-emp-btn" onclick="openAddSheet()">➕ 添加员工</button>
+    </div>
+
+  </div>
+
+  <!-- 添加/编辑 表单弹层 -->
+  <div class="form-sheet" id="formSheet">
+    <div class="grip"></div>
+    <h3 id="sheetTitle">添加员工</h3>
+    <input type="hidden" id="editId">
+    <div class="form-group">
+      <label>姓名</label>
+      <input type="text" id="fName" placeholder="如：张三" maxlength="20">
+    </div>
+    <div class="form-group">
+      <label>岗位</label>
+      <input type="text" id="fPosition" placeholder="如：店员 / 值班经理" maxlength="20">
+    </div>
+    <div class="form-group">
+      <label>登录账号</label>
+      <input type="text" id="fUsername" placeholder="字母/数字，如 zhangsan" maxlength="30" autocomplete="off">
+    </div>
+    <div class="form-group">
+      <label id="pwdLabel">密码</label>
+      <input type="text" id="fPassword" placeholder="初始密码" maxlength="30">
+    </div>
+    <div class="form-group">
+      <label>角色</label>
+      <div class="role-pick">
+        <label>
+          <input type="radio" name="fRole" value="staff" checked>
+          👨‍🍳 员工
+        </label>
+        <label>
+          <input type="radio" name="fRole" value="admin">
+          📋 管理员
+        </label>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn ghost" onclick="closeSheet()">取消</button>
+      <button class="btn primary" onclick="submitForm()">保存</button>
+    </div>
+  </div>
+
+  <!-- 确认对话框 -->
+  <div class="modal-backdrop" id="modal">
+    <div class="modal">
+      <h3 id="modalTitle">提示</h3>
+      <p id="modalBody">是否继续？</p>
+      <div class="actions">
+        <button class="btn ghost" onclick="closeModal()">取消</button>
+        <button class="btn primary" id="modalConfirm">确定</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script src="js/data.js"></script>
+  <script src="js/admin-employees.js"></script>
+</body>
+</html>

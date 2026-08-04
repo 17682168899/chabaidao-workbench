@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#2563EB">
+  <title>管理后台 · 茶百道工作台</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="admin-desktop">
+  <!-- 顶部栏 -->
+  <header class="topbar">
+    <h1>
+      <span class="logo">茶</span>
+      管理后台
+    </h1>
+    <div class="actions">
+      <div class="user-bar">
+        <div class="avatar" id="userAvatar">👤</div>
+        <span class="uname" id="userName">—</span>
+      </div>
+      <button onclick="doLogout()">退出</button>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="card">
+      <h2 class="card-title"><span class="dot"></span>管理模块</h2>
+      <div class="mgmt-grid" id="mgmtGrid">
+        <button class="mgmt-card" onclick="goModule('attendance')">
+          <div class="mgmt-icon">📋</div>
+          <div class="mgmt-name">考勤管理</div>
+          <div class="mgmt-desc">排班与工时统计</div>
+        </button>
+        <button class="mgmt-card" onclick="goModule('material')">
+          <div class="mgmt-icon">📦</div>
+          <div class="mgmt-name">物料管理</div>
+          <div class="mgmt-desc">原料库存盘点</div>
+        </button>
+        <button class="mgmt-card" onclick="goModule('product')">
+          <div class="mgmt-icon">🧋</div>
+          <div class="mgmt-name">产品管理</div>
+          <div class="mgmt-desc">菜单与配方</div>
+        </button>
+        <button class="mgmt-card" onclick="goModule('clean')">
+          <div class="mgmt-icon">🧹</div>
+          <div class="mgmt-name">清洁管理</div>
+          <div class="mgmt-desc">卫生与设备清洁</div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script src="js/data.js"></script>
+  <script>
+    const CURRENT_USER = requireLogin('admin');
+    if (!CURRENT_USER) { /* 已跳转 */ }
+    else {
+      document.getElementById('userName').textContent = CURRENT_USER.name;
+      document.getElementById('userAvatar').textContent = CURRENT_USER.role === 'admin' ? '👑' : '👤';
+    }
+
+    function goModule(key) {
+      if (key === 'attendance') {
+        window.location.href = 'admin.html';
+      } else if (key === 'material') {
+        window.location.href = 'material.html';
+      } else {
+        showToast('功能开发中，敬请期待');
+      }
+    }
+
+    function doLogout() {
+      sessionStorage.removeItem(SESSION_KEY);
+      window.location.href = 'login.html';
+    }
+
+    let toastTimer = null;
+    function showToast(msg) {
+      const el = document.getElementById('toast');
+      if (!el) return;
+      el.textContent = msg;
+      el.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => el.classList.remove('show'), 2000);
+    }
+  </script>
+</body>
+</html>

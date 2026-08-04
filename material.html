@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#2563EB">
+  <title>物料管理 · 茶百道工作台</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="admin-desktop">
+  <!-- 顶部栏 -->
+  <header class="topbar">
+    <h1>
+      <span class="logo">茶</span>
+      物料管理
+    </h1>
+    <div class="actions">
+      <button onclick="goManagement()">🏠 管理后台</button>
+      <button onclick="doLogout()">退出</button>
+    </div>
+  </header>
+
+  <div class="container">
+
+    <!-- 统计 -->
+    <div class="card">
+      <h2 class="card-title"><span class="dot"></span>库存概览</h2>
+      <div class="mat-stat-grid">
+        <div class="stat-item">
+          <div class="num" id="totalCount">0</div>
+          <div class="label">物料种类</div>
+        </div>
+        <div class="stat-item warn">
+          <div class="num" id="warnCount">0</div>
+          <div class="label">库存预警</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 添加物料 -->
+    <div class="card">
+      <h2 class="card-title title-with-btn"><span class="dot"></span>添加物料
+        <button type="button" class="btn ghost btn-title" onclick="openDocModal()">📄 上传文档识别</button>
+      </h2>
+      <form id="addForm" class="mat-form" onsubmit="return addMaterial(event)">
+        <input type="text" id="matName" placeholder="物料名称（如 珍珠）" required>
+        <select id="matCategory">
+          <option>茶叶</option>
+          <option>奶类</option>
+          <option>糖浆</option>
+          <option>配料</option>
+          <option>包材</option>
+          <option>水果</option>
+          <option>其他</option>
+        </select>
+        <input type="text" id="matUnit" placeholder="单位" value="份" required>
+        <input type="number" id="matWarn" placeholder="预警线" value="5" min="0">
+        <button type="submit" class="btn primary">添加</button>
+      </form>
+    </div>
+
+    <!-- 物料清单 -->
+    <div class="card">
+      <h2 class="card-title"><span class="dot"></span>物料清单</h2>
+      <div class="mat-list" id="matList"></div>
+    </div>
+
+  </div>
+
+  <!-- 文档识别弹窗 -->
+  <div class="modal-backdrop" id="docModal">
+    <div class="modal doc-modal">
+      <h3>📄 上传文档识别物料</h3>
+      <p class="doc-tip">支持 <b>.txt / .csv / .md</b> 文件，每行一种物料，自动识别名称、数量、单位、分类。格式示例：<br>
+        <code>珍珠 12 kg 配料</code> ｜ <code>红茶,8,kg,茶叶</code> ｜ <code>柠檬</code><br>
+        也可直接把文档内容粘贴到下方文本框。
+      </p>
+
+      <div class="doc-drop" id="docDrop">
+        <input type="file" id="docFile" accept=".txt,.csv,.tsv,.md,text/plain" hidden>
+        <button type="button" class="btn ghost" onclick="document.getElementById('docFile').click()">📁 选择文件</button>
+        <span class="doc-drop-hint">或将文件拖拽到此处</span>
+      </div>
+
+      <textarea id="docText" class="doc-textarea" placeholder="也可在此粘贴内容，输入即自动识别……"></textarea>
+
+      <div class="doc-preview" id="docPreview">
+        <div class="empty-state"><div class="icon">🔍</div><p>上传或粘贴文档后将在此预览识别结果</p></div>
+      </div>
+
+      <div class="actions">
+        <button type="button" class="btn ghost" onclick="closeDocModal()">取消</button>
+        <button type="button" class="btn primary" id="docImportBtn" onclick="importDocMaterials()" disabled>导入识别结果</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="js/data.js"></script>
+  <script src="js/material.js"></script>
+</body>
+</html>

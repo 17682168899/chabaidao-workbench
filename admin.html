@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#2563EB">
+  <title>管理员端 · 茶百道工作台</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="admin-desktop">
+  <!-- 顶部栏 -->
+  <header class="topbar">
+    <h1>
+      <span class="logo">茶</span>
+      管理员端
+    </h1>
+    <div class="actions">
+      <div class="user-bar">
+        <div class="avatar" id="userAvatar">👤</div>
+        <span class="uname" id="userName">—</span>
+      </div>
+      <button onclick="goManagement()">🏠 管理后台</button>
+      <button onclick="goSettings()">⚙️ 设置</button>
+      <button onclick="doLogout()">退出</button>
+    </div>
+  </header>
+
+  <div class="container">
+
+    <!-- 周切换 -->
+    <div class="week-nav">
+      <button onclick="shiftW(-1)">‹</button>
+      <div class="week-label">
+        <div class="range" id="weekRange">本周</div>
+        <div class="meta" id="weekMeta"></div>
+      </div>
+      <button onclick="shiftW(1)">›</button>
+    </div>
+
+    <!-- 排班表（核心） -->
+    <div class="card sched-card">
+      <h2 class="card-title"><span class="dot"></span>排班表</h2>
+
+      <!-- 工具行：模式 + 图例 + 日期/操作 -->
+      <div class="sched-toolbar">
+        <div class="sched-toolbar-left">
+          <div class="seg" id="modeSeg">
+            <button class="active" data-mode="work">🔵 考勤</button>
+            <button data-mode="rest">🟡 休息</button>
+            <button data-mode="erase">⚪ 清除</button>
+          </div>
+          <div class="legend">
+            <span><i class="sw work"></i>考勤</span>
+            <span><i class="sw rest"></i>休息</span>
+            <span><i class="sw empty"></i>未排</span>
+          </div>
+          <span class="paint-tip">💡 单击涂色，按住拖拽连续涂</span>
+        </div>
+
+        <div class="sched-toolbar-right">
+          <div class="day-nav">
+            <button class="day-arrow" onclick="shiftD(-1)" aria-label="前一天">‹</button>
+            <div class="day-label" id="dayLabel">—</div>
+            <button class="day-arrow" onclick="shiftD(1)" aria-label="后一天">›</button>
+          </div>
+          <div class="tool-ops">
+            <button class="btn ghost" onclick="clearDay()">🗑 清除当天</button>
+            <button class="btn primary" onclick="saveAndPublish()">💾 保存当天排班</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="schedule-wrap">
+        <div class="schedule-scroll">
+          <table class="schedule-table" id="scheduleTable"></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 统计概览 -->
+    <div class="card">
+      <h2 class="card-title"><span class="dot"></span>本周工时统计</h2>
+      <div class="today-list" id="hoursList"></div>
+    </div>
+
+    <!-- 本月工时统计 -->
+    <div class="card">
+      <h2 class="card-title"><span class="dot"></span>本月工时统计</h2>
+      <div class="today-list" id="monthHoursList"></div>
+    </div>
+
+  </div>
+
+  <!-- 确认对话框 -->
+  <div class="modal-backdrop" id="modal">
+    <div class="modal">
+      <h3 id="modalTitle">提示</h3>
+      <p id="modalBody">是否继续？</p>
+      <div class="actions">
+        <button class="btn ghost" onclick="closeModal()">取消</button>
+        <button class="btn primary" id="modalConfirm">确定</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 员工考勤详情弹窗 -->
+  <div class="modal-backdrop" id="detailModal">
+    <div class="modal detail-modal">
+      <h3 id="detailTitle">考勤详情</h3>
+      <div class="detail-body" id="detailBody"></div>
+      <div class="actions">
+        <button class="btn primary" onclick="closeDetailModal()">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script src="js/data.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>
